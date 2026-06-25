@@ -24,4 +24,6 @@ public class Tasks {
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private Users assignee_user_id;
 
+    /* first time */
+
 }
