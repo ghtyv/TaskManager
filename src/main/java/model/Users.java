@@ -1,4 +1,4 @@
-package com.taskmanager.task_manager_rest_api_spring_boot;
+package model;
 
 import jakarta.persistence.*;
 

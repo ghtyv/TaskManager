@@ -1,5 +1,4 @@
-package com.taskmanager.task_manager_rest_api_spring_boot;
-
+package model;
 
 import jakarta.persistence.*;
 
@@ -24,6 +23,23 @@ public class Tasks {
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private Users assignee_user_id;
 
-    /* first time */
+    public Tasks() {
+    }
+
+    public String getTitle() {
+
+        return title;
+
+    }
+
+    public String getDescription() {
+
+        return description;
+
+    }
+
+    public void setOpen(Boolean open) {
+        this.open = open;
+    }
 
 }
