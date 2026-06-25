@@ -39,7 +39,20 @@ public class Tasks {
     }
 
     public void setOpen(Boolean open) {
+
         this.open = open;
+
     }
 
+    public void setTitle(String title) {
+
+        this.title = title;
+
+    }
+
+    public void setDescription(String description) {
+
+        this.description = description;
+
+    }
 }

@@ -55,6 +55,19 @@ public class TasksService {
 
     }
 
+    public Tasks createTask(String title, String description) {
+
+        Tasks task = new Tasks();
+
+        task.setTitle(title);
+        task.setDescription(description);
+
+        tasksRepository.save(task);
+
+        return task;
+
+    }
+
 
 
 }

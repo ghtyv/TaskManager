@@ -64,9 +64,7 @@ public class TasksController {
         String title = task.getTitle();
         String description = task.getDescription();
 
-        tasksRepository.save(task);
-
-        return task;
+        return tasksService.createTask(title, description);
 
     }
 
