@@ -7,7 +7,6 @@ import repository.TasksRepository;
 import service.TasksService;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -31,14 +30,14 @@ public class TasksController {
     }
 
     @GetMapping("/tasks/open")
-    public Optional<Tasks> findByOpenTrue() {
+    public List<Tasks> findByOpenTrue() {
 
         return tasksRepository.findByOpenTrue();
 
     }
 
     @GetMapping("/tasks/closed")
-    public Optional<Tasks> findByOpenFalse() {
+    public List<Tasks> findByOpenFalse() {
 
         return tasksRepository.findByOpenFalse();
 
