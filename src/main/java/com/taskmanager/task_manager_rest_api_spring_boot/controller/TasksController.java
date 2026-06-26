@@ -1,10 +1,11 @@
-package controller;
+package com.taskmanager.task_manager_rest_api_spring_boot.controller;
 
-import model.Tasks;
+import com.taskmanager.task_manager_rest_api_spring_boot.model.Tasks;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import repository.TasksRepository;
-import service.TasksService;
+import com.taskmanager.task_manager_rest_api_spring_boot.repository.TasksRepository;
+import com.taskmanager.task_manager_rest_api_spring_boot.service.TasksService;
 
 import java.util.List;
 
@@ -12,7 +13,10 @@ import java.util.List;
 @RequestMapping("/api")
 public class TasksController {
 
+    @Autowired
     private TasksService tasksService;
+
+    @Autowired
     private TasksRepository tasksRepository;
 
     @GetMapping("/tasks")
@@ -43,14 +47,14 @@ public class TasksController {
 
     }
 
-    @PutMapping("/task/{id}")
+    @PutMapping("/task/{id}/close")
     public Tasks closeTaskById(@PathVariable("id") Long id) {
 
         return tasksService.closeTaskById(id);
 
     }
 
-    @PutMapping("/task/{id}")
+    @PutMapping("/task/{id}/open")
     public  Tasks openTaskById(@PathVariable("id") Long id) {
 
         return tasksService.openTaskById(id);

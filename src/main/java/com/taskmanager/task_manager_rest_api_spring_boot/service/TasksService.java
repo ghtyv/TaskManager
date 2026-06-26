@@ -1,8 +1,9 @@
-package service;
+package com.taskmanager.task_manager_rest_api_spring_boot.service;
 
-import model.Tasks;
+import com.taskmanager.task_manager_rest_api_spring_boot.model.Tasks;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import repository.TasksRepository;
+import com.taskmanager.task_manager_rest_api_spring_boot.repository.TasksRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,14 +11,8 @@ import java.util.Optional;
 @Service
 public class TasksService {
 
-    private final TasksRepository tasksRepository;
-
-    public TasksService(TasksRepository tasksRepository) {
-
-        this.tasksRepository = tasksRepository;
-
-    }
-
+    @Autowired
+    private TasksRepository tasksRepository;
 
     public List<Tasks> findAllTasks() {
 

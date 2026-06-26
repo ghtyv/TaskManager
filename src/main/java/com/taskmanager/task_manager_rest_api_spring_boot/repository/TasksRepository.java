@@ -1,6 +1,6 @@
-package repository;
+package com.taskmanager.task_manager_rest_api_spring_boot.repository;
 
-import model.Tasks;
+import com.taskmanager.task_manager_rest_api_spring_boot.model.Tasks;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

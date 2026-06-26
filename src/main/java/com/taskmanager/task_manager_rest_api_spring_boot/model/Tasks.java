@@ -1,4 +1,4 @@
-package model;
+package com.taskmanager.task_manager_rest_api_spring_boot.model;
 
 import jakarta.persistence.*;
 
@@ -22,9 +22,6 @@ public class Tasks {
     @ManyToOne
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private Users assignee_user_id;
-
-    public Tasks() {
-    }
 
     public String getTitle() {
 
