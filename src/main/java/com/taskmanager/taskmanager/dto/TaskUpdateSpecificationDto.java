@@ -9,7 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class TaskUpdateSpecificationDto {
 
-    private String title;
     private String description;
     private boolean open;
     private Long assigneeId;
