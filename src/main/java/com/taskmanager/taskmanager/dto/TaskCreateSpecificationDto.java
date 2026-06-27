@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class TaskDto {
+public class TaskCreateSpecificationDto {
 
     private String title;
     private String description;

@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.service;
 
-import com.taskmanager.taskmanager.dto.TaskDto;
+import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
+import com.taskmanager.taskmanager.dto.TaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
@@ -20,7 +21,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
 
-    public List<TaskDto> findAllTasks() {
+    public List<TaskCreateSpecificationDto> findAllTasks() {
         return taskRepository.findAllTasks()
                 .stream()
                 .map(taskMapper::toDto)
@@ -31,35 +32,43 @@ public class TaskService {
         return taskRepository.findById(id);
     }
 
-    public Task updateTask(Task task) {
-        return taskRepository.save(task);
-    }
-
-    public Task changeTaskById(Long id) {
-        Task task = findTaskById(id).orElseThrow();
-        task.setOpen(false);
-
-        return updateTask(task);
-    }
-
-    public Task openTaskById(Long id) {
-        Task task = findTaskById(id).orElseThrow();
-        task.setOpen(true);
-
-        return updateTask(task);
-    }
-
-    public TaskDto createTask(TaskDto taskDto) {
+    public TaskUpdateSpecificationDto updateTask(Long id, TaskUpdateSpecificationDto taskUpdateSpecificationDto) {
         User assignee = null;
+        var task = findTaskById(id).orElseThrow();
 
-        if (taskDto.getAssigneeId() != null) {
-            assignee = userRepository.findUserById(taskDto.getAssigneeId())
+
+        task.setDescription(taskUpdateSpecificationDto.getDescription());
+        task.setOpen(taskUpdateSpecificationDto.isOpen()); /* может нужен if statement для проверки на isOpen != null?
+                                                              не знаю как на фронте будет передаваться статус задачи
+                                                              для его изменения, мб там по умолчанию автоматически
+                                                              будет выбираться действующий статус задачи, а может
+                                                              как раз никакой (null) статус по умолчанию не
+                                                              выбираться */
+
+        if (taskUpdateSpecificationDto.getAssigneeId() != null) {
+            assignee = userRepository.findUserById(taskUpdateSpecificationDto.getAssigneeId())
                     .orElseThrow();
         }
 
-        var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
+        task.setAssignee(assignee);
+
         taskRepository.save(task);
-        return taskDto;
+
+        return taskUpdateSpecificationDto;
+    }
+
+    public TaskCreateSpecificationDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
+        User assignee = null;
+
+        if (taskCreateSpecificationDto.getAssigneeId() != null) {
+            assignee = userRepository.findUserById(taskCreateSpecificationDto.getAssigneeId())
+                    .orElseThrow();
+        }
+
+        var task = new Task(taskCreateSpecificationDto.getTitle(), taskCreateSpecificationDto.getDescription(), assignee);
+        taskRepository.save(task);
+
+        return taskCreateSpecificationDto;
     }
 
     public List<Task> findAllByOpen(boolean isOpen) {
