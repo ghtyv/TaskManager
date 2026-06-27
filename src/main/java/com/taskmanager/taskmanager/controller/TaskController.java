@@ -1,7 +1,6 @@
 package com.taskmanager.taskmanager.controller;
 
-import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
-import com.taskmanager.taskmanager.dto.TaskUpdateSpecificationDto;
+import com.taskmanager.taskmanager.dto.TaskDto;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<TaskCreateSpecificationDto> findAllTasks() {
+    public List<TaskDto> findAllTasks() {
         return taskService.findAllTasks();
     }
 
@@ -33,14 +32,14 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/update")
-    public TaskUpdateSpecificationDto updateTask(@PathVariable("id") Long id, @RequestBody TaskUpdateSpecificationDto
-            taskUpdateSpecificationDto) {
-        return taskService.updateTask(id, taskUpdateSpecificationDto);
+    public TaskDto updateTask(@PathVariable("id") Long id, @RequestBody TaskDto
+            taskDto) {
+        return taskService.updateTask(id, taskDto);
     }
 
     @PostMapping
-    public TaskCreateSpecificationDto createTask(@RequestBody TaskCreateSpecificationDto taskCreateSpecificationDto) {
-        return taskService.createTask(taskCreateSpecificationDto);
+    public TaskDto createTask(@RequestBody TaskDto taskDto) {
+        return taskService.createTask(taskDto);
     }
 
 }

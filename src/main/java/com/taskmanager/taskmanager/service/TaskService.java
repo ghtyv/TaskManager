@@ -1,7 +1,6 @@
 package com.taskmanager.taskmanager.service;
 
-import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
-import com.taskmanager.taskmanager.dto.TaskUpdateSpecificationDto;
+import com.taskmanager.taskmanager.dto.TaskDto;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
@@ -21,7 +20,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
 
-    public List<TaskCreateSpecificationDto> findAllTasks() {
+    public List<TaskDto> findAllTasks() {
         return taskRepository.findAllTasks()
                 .stream()
                 .map(taskMapper::toDto)
@@ -32,21 +31,22 @@ public class TaskService {
         return taskRepository.findById(id);
     }
 
-    public TaskUpdateSpecificationDto updateTask(Long id, TaskUpdateSpecificationDto taskUpdateSpecificationDto) {
+    public TaskDto updateTask(Long id, TaskDto taskDto) {
+
         User assignee = null;
         var task = findTaskById(id).orElseThrow();
 
 
-        task.setDescription(taskUpdateSpecificationDto.getDescription());
-        task.setOpen(taskUpdateSpecificationDto.isOpen()); /* может нужен if statement для проверки на isOpen != null?
-                                                              не знаю как на фронте будет передаваться статус задачи
-                                                              для его изменения, мб там по умолчанию автоматически
-                                                              будет выбираться действующий статус задачи, а может
-                                                              как раз никакой (null) статус по умолчанию не
-                                                              выбираться */
+        task.setDescription(taskDto.getDescription());
+        task.setOpen(taskDto.isOpen()); /* может нужен if statement для проверки на isOpen != null?
+                                           не знаю как на фронте будет передаваться статус задачи
+                                           для его изменения, мб там по умолчанию автоматически
+                                           будет выбираться действующий статус задачи, а может
+                                           как раз никакой (null) статус по умолчанию не
+                                           выбираться */
 
-        if (taskUpdateSpecificationDto.getAssigneeId() != null) {
-            assignee = userRepository.findUserById(taskUpdateSpecificationDto.getAssigneeId())
+        if (taskDto.getAssigneeId() != null) {
+            assignee = userRepository.findUserById(taskDto.getAssigneeId())
                     .orElseThrow();
         }
 
@@ -54,21 +54,21 @@ public class TaskService {
 
         taskRepository.save(task);
 
-        return taskUpdateSpecificationDto;
+        return taskDto;
     }
 
-    public TaskCreateSpecificationDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
+    public TaskDto createTask(TaskDto taskDto) {
         User assignee = null;
 
-        if (taskCreateSpecificationDto.getAssigneeId() != null) {
-            assignee = userRepository.findUserById(taskCreateSpecificationDto.getAssigneeId())
+        if (taskDto.getAssigneeId() != null) {
+            assignee = userRepository.findUserById(taskDto.getAssigneeId())
                     .orElseThrow();
         }
 
-        var task = new Task(taskCreateSpecificationDto.getTitle(), taskCreateSpecificationDto.getDescription(), assignee);
+        var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
         taskRepository.save(task);
 
-        return taskCreateSpecificationDto;
+        return taskDto;
     }
 
     public List<Task> findAllByOpen(boolean isOpen) {
