@@ -1,4 +1,4 @@
-package com.taskmanager.task_manager_rest_api_spring_boot.config;
+package com.taskmanager.taskmanager.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

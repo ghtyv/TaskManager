@@ -1,0 +1,68 @@
+package com.taskmanager.taskmanager.service;
+
+import com.taskmanager.taskmanager.dto.TaskDto;
+import com.taskmanager.taskmanager.mapper.TaskMapper;
+import com.taskmanager.taskmanager.model.Task;
+import com.taskmanager.taskmanager.model.User;
+import com.taskmanager.taskmanager.repository.TaskRepository;
+import com.taskmanager.taskmanager.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class TaskService {
+
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final TaskMapper taskMapper;
+
+    public List<TaskDto> findAllTasks() {
+        return taskRepository.findAllTasks()
+                .stream()
+                .map(taskMapper::toDto)
+                .toList();
+    }
+
+    public Optional<Task> findTaskById(Long id) {
+        return taskRepository.findById(id);
+    }
+
+    public Task updateTask(Task task) {
+        return taskRepository.save(task);
+    }
+
+    public Task changeTaskById(Long id) {
+        Task task = findTaskById(id).orElseThrow();
+        task.setOpen(false);
+
+        return updateTask(task);
+    }
+
+    public Task openTaskById(Long id) {
+        Task task = findTaskById(id).orElseThrow();
+        task.setOpen(true);
+
+        return updateTask(task);
+    }
+
+    public TaskDto createTask(TaskDto taskDto) {
+        User assignee = null;
+
+        if (taskDto.getAssigneeId() != null) {
+            assignee = userRepository.findUserById(taskDto.getAssigneeId())
+                    .orElseThrow();
+        }
+
+        var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
+        taskRepository.save(task);
+        return taskDto;
+    }
+
+    public List<Task> findAllByOpen(boolean isOpen) {
+        return taskRepository.findAllByOpen(isOpen);
+    }
+}

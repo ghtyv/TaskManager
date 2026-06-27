@@ -1,8 +1,8 @@
-package com.taskmanager.task_manager_rest_api_spring_boot.service;
+package com.taskmanager.taskmanager.service;
 
-import com.taskmanager.task_manager_rest_api_spring_boot.model.CustomUserDetails;
-import com.taskmanager.task_manager_rest_api_spring_boot.model.Users;
-import com.taskmanager.task_manager_rest_api_spring_boot.repository.UsersRepository;
+import com.taskmanager.taskmanager.model.CustomUserDetails;
+import com.taskmanager.taskmanager.model.User;
+import com.taskmanager.taskmanager.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,18 +15,18 @@ import java.util.Optional;
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UsersRepository usersRepository;
+    private UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        Optional<Users> optionalUser = usersRepository.findUserByEmail(email);
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
 
         if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException("User with email " + email + " not found");
         }
 
-        Users user = optionalUser.get();
+        User user = optionalUser.get();
 
         return new CustomUserDetails(user.getPassword(), user.getEmail());
 

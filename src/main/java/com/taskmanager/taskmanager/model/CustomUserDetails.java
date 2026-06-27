@@ -1,4 +1,4 @@
-package com.taskmanager.task_manager_rest_api_spring_boot.model;
+package com.taskmanager.taskmanager.model;
 
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.Nullable;

@@ -1,6 +1,5 @@
-package com.taskmanager.task_manager_rest_api_spring_boot.controller;
+package com.taskmanager.taskmanager.controller;
 
-import com.taskmanager.task_manager_rest_api_spring_boot.model.Users;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
