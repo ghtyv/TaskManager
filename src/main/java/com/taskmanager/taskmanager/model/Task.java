@@ -24,9 +24,10 @@ public class Task {
     @Column (name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Getter
     @Setter
     @Column (name = "open", nullable = false)
-    private boolean open = true;
+    private Boolean open = true;
 
     @Getter
     @Setter

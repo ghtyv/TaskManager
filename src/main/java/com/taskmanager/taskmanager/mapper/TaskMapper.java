@@ -10,13 +10,14 @@ public class TaskMapper {
     public TaskDto toDto(Task task) {
         String title = task.getTitle();
         String description = task.getDescription();
+        Boolean open = task.getOpen();
         Long assigneeId = null;
 
         if (task.getAssignee() != null) {
             assigneeId = task.getAssignee().getId();
         }
 
-        return  new TaskDto(title, description, assigneeId);
+        return  new TaskDto(title, description, open, assigneeId);
     }
 
 }

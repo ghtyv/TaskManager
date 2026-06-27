@@ -32,32 +32,33 @@ public class TaskService {
     }
 
     public TaskDto updateTask(Long id, TaskDto taskDto) {
-
-        User assignee = null;
         var task = findTaskById(id).orElseThrow();
 
-
-        task.setDescription(taskDto.getDescription());
-        task.setOpen(taskDto.isOpen()); /* может нужен if statement для проверки на isOpen != null?
-                                           не знаю как на фронте будет передаваться статус задачи
-                                           для его изменения, мб там по умолчанию автоматически
-                                           будет выбираться действующий статус задачи, а может
-                                           как раз никакой (null) статус по умолчанию не
-                                           выбираться */
-
-        if (taskDto.getAssigneeId() != null) {
-            assignee = userRepository.findUserById(taskDto.getAssigneeId())
-                    .orElseThrow();
+        if (taskDto.getTitle() != null) {
+            task.setTitle(taskDto.getTitle());
         }
 
-        task.setAssignee(assignee);
+        if (taskDto.getDescription() != null) {
+            task.setDescription(taskDto.getDescription());
+        }
 
-        taskRepository.save(task);
+        if (taskDto.getOpen() != null) {
+            task.setOpen(taskDto.getOpen());
+        }
 
-        return taskDto;
+        if (taskDto.getAssigneeId() != null) {
+            var assignee = userRepository.findUserById(taskDto.getAssigneeId())
+                    .orElseThrow();
+            task.setAssignee(assignee);
+        }
+
+        var savedTask = taskRepository.save(task);
+
+        return taskMapper.toDto(savedTask);
     }
 
     public TaskDto createTask(TaskDto taskDto) {
+        taskDto.setOpen(true);
         User assignee = null;
 
         if (taskDto.getAssigneeId() != null) {
@@ -66,9 +67,9 @@ public class TaskService {
         }
 
         var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
-        taskRepository.save(task);
+        var savedTask = taskRepository.save(task);
 
-        return taskDto;
+        return taskMapper.toDto(savedTask);
     }
 
     public List<Task> findAllByOpen(boolean isOpen) {
