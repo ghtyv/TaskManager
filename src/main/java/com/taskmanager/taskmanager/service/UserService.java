@@ -4,6 +4,7 @@ import com.taskmanager.taskmanager.dto.UserDto;
 import com.taskmanager.taskmanager.mapper.UserMapper;
 import com.taskmanager.taskmanager.model.User;
 import com.taskmanager.taskmanager.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +19,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
+    @Transactional
     public UserDto createUser(UserDto userDto) {
         String email = null;
         String password = null;

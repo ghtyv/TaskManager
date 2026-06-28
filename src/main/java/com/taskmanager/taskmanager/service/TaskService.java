@@ -7,6 +7,7 @@ import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
 import com.taskmanager.taskmanager.repository.TaskRepository;
 import com.taskmanager.taskmanager.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
 
+    @Transactional
     public List<TaskDto> findAllTasks() {
         return taskRepository.findAllTasks()
                 .stream()
@@ -30,10 +32,12 @@ public class TaskService {
                 .toList();
     }
 
+    @Transactional
     public Optional<Task> findTaskById(Long id) {
         return taskRepository.findById(id);
     }
 
+    @Transactional
     public TaskDto updateTask(Long id, TaskDto taskDto) {
         var ex = new ResourceNotFoundException();
 
@@ -72,6 +76,7 @@ public class TaskService {
         return taskMapper.toDto(savedTask);
     }
 
+    @Transactional
     public TaskDto createTask(TaskDto taskDto) {
         var ex = new ResourceNotFoundException();
 
@@ -114,6 +119,7 @@ public class TaskService {
         return taskMapper.toDto(savedTask);
     }
 
+    @Transactional
     public List<Task> findAllByOpen(boolean isOpen) {
         return taskRepository.findAllByOpen(isOpen);
     }
