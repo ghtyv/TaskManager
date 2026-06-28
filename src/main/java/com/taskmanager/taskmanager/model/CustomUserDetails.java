@@ -11,8 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private String password;
     private String email;
+    private String password;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

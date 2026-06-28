@@ -8,7 +8,9 @@ import com.taskmanager.taskmanager.model.User;
 import com.taskmanager.taskmanager.repository.TaskRepository;
 import com.taskmanager.taskmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +35,14 @@ public class TaskService {
     }
 
     public TaskDto updateTask(Long id, TaskDto taskDto) {
+        var ex = new ResourceNotFoundException();
+
         var task = findTaskById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Task with id " + id + " not found"));
+                () -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Task With Id " + id + " Not Found",
+                        ex)
+        );
 
         if (taskDto.getTitle() != null) {
             task.setTitle(taskDto.getTitle());
@@ -51,8 +59,10 @@ public class TaskService {
         if (taskDto.getAssigneeId() != null) {
             var assignee = userRepository.findUserById(taskDto.getAssigneeId())
                     .orElseThrow(
-                            () -> new ResourceNotFoundException(
-                                    "Provided assignee with id " + taskDto.getAssigneeId() + " not found")
+                            () -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "Provided Assignee Not Found",
+                                    ex)
                     );
             task.setAssignee(assignee);
         }
@@ -63,18 +73,42 @@ public class TaskService {
     }
 
     public TaskDto createTask(TaskDto taskDto) {
+        var ex = new ResourceNotFoundException();
+
         taskDto.setOpen(true);
+        String title = null;
+        String description = null;
         User assignee = null;
+
+        if (taskDto.getTitle() != null) {
+            title = taskDto.getTitle()
+                    .describeConstable().orElseThrow(
+                            () -> new ResponseStatusException(
+                                    HttpStatus.BAD_REQUEST,
+                                    "Provided Title " + taskDto.getTitle() + " Is Not Valid")
+                    );
+        }
+
+        if (taskDto.getDescription() != null) {
+            description = taskDto.getDescription()
+                    .describeConstable().orElseThrow(
+                            () -> new ResponseStatusException(
+                                    HttpStatus.BAD_REQUEST,
+                                    "Provided Description " + taskDto.getDescription() + " Is Not Valid")
+                    );
+        }
 
         if (taskDto.getAssigneeId() != null) {
             assignee = userRepository.findUserById(taskDto.getAssigneeId())
                     .orElseThrow(
-                            () -> new ResourceNotFoundException(
-                                    "Provided assignee with id " + taskDto.getAssigneeId() + " not found")
+                            () -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "Provided Assignee Not Found",
+                                    ex)
                     );
         }
 
-        var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
+        var task = new Task(title, description, assignee);
         var savedTask = taskRepository.save(task);
 
         return taskMapper.toDto(savedTask);
