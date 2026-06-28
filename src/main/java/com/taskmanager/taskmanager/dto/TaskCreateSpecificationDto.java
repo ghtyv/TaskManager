@@ -1,16 +1,21 @@
 package com.taskmanager.taskmanager.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class TaskDto {
+@NoArgsConstructor
+public class TaskCreateSpecificationDto {
 
+    @NotBlank
     private String title;
+
     private String description;
-    private Boolean open;
     private Long assigneeId;
+
 }

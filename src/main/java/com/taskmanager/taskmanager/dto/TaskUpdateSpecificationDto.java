@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,12 +11,16 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class TaskUpdateSpecificationDto {
 
     @NotBlank
-    private String email;
+    private String title;
 
-    @NotBlank
-    private String password;
+    private String description;
+
+    @NotNull
+    private Boolean open;
+
+    private Long assigneeId;
 
 }

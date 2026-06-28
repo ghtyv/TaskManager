@@ -1,11 +1,13 @@
 package com.taskmanager.taskmanager.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table (name = "tasks")
 public class Task {
@@ -14,23 +16,15 @@ public class Task {
     @GeneratedValue (strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter
-    @Setter
     @Column (name = "title", nullable = false, length = 255)
     private String title;
 
-    @Getter
-    @Setter
     @Column (name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Getter
-    @Setter
-    @Column (name = "open")
-    private Boolean open = true;
+    @Column (name = "open", nullable = false)
+    private boolean open = true;
 
-    @Getter
-    @Setter
     @ManyToOne
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private User assignee;

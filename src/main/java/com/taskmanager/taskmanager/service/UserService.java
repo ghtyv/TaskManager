@@ -21,32 +21,16 @@ public class UserService {
 
     @Transactional
     public UserDto createUser(UserDto userDto) {
-        String email = null;
-        String password = null;
+        var email = userDto.getEmail();
 
-        if (userDto.getEmail() != null) {
-            email = userDto.getEmail()
-                    .describeConstable().orElseThrow(
-                            () -> new ResponseStatusException(
-                                    HttpStatus.BAD_REQUEST,
-                                    "Provided Email " + userDto.getEmail() + " Is Not Valid")
-                    );
-            if (userRepository.existsByEmail(email)) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Provided Email " + email + "Already Exists"
-                );
-            }
+        if (userRepository.existsByEmail(email)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Email " + email + " Already Exists"
+            );
         }
 
-        if (userDto.getPassword() != null) {
-            password = passwordEncoder.encode(userDto.getPassword())
-                    .describeConstable().orElseThrow(
-                            () -> new ResponseStatusException(
-                                    HttpStatus.BAD_REQUEST,
-                                    "Provided Password " + userDto.getPassword() + " Is Not Valid")
-                    );
-        }
+        var password = passwordEncoder.encode(userDto.getPassword());
 
         var user = new User(email, password);
         var savedUser = userRepository.save(user);
