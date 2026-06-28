@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanager.service;
 
 import com.taskmanager.taskmanager.dto.TaskDto;
+import com.taskmanager.taskmanager.exception.ResourceNotFoundException;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
@@ -32,7 +33,8 @@ public class TaskService {
     }
 
     public TaskDto updateTask(Long id, TaskDto taskDto) {
-        var task = findTaskById(id).orElseThrow();
+        var task = findTaskById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Task with id " + id + " not found"));
 
         if (taskDto.getTitle() != null) {
             task.setTitle(taskDto.getTitle());
@@ -48,7 +50,10 @@ public class TaskService {
 
         if (taskDto.getAssigneeId() != null) {
             var assignee = userRepository.findUserById(taskDto.getAssigneeId())
-                    .orElseThrow();
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException(
+                                    "Provided assignee with id " + taskDto.getAssigneeId() + " not found")
+                    );
             task.setAssignee(assignee);
         }
 
@@ -63,7 +68,10 @@ public class TaskService {
 
         if (taskDto.getAssigneeId() != null) {
             assignee = userRepository.findUserById(taskDto.getAssigneeId())
-                    .orElseThrow();
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException(
+                                    "Provided assignee with id " + taskDto.getAssigneeId() + " not found")
+                    );
         }
 
         var task = new Task(taskDto.getTitle(), taskDto.getDescription(), assignee);
