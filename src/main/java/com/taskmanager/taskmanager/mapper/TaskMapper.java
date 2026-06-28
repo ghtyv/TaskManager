@@ -4,6 +4,8 @@ import com.taskmanager.taskmanager.dto.TaskDto;
 import com.taskmanager.taskmanager.model.Task;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class TaskMapper {
 
@@ -18,6 +20,13 @@ public class TaskMapper {
         }
 
         return  new TaskDto(title, description, open, assigneeId);
+    }
+
+    public List<TaskDto> listToDto(List<Task> taskList) {
+        return taskList
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
 }

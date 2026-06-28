@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,27 +25,34 @@ public class TaskService {
 
     @Transactional
     public List<TaskDto> findAllTasks() {
-        return taskRepository.findAllTasks()
-                .stream()
-                .map(taskMapper::toDto)
-                .toList();
+        return taskMapper.listToDto(taskRepository.findAll());
     }
 
     @Transactional
-    public Optional<Task> findTaskById(Long id) {
-        return taskRepository.findById(id);
+    public TaskDto findTaskById(Long id) {
+        var ex = new ResourceNotFoundException();
+
+        var task = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + id + " Not Found",
+                                ex)
+                );
+        return taskMapper.toDto(task);
     }
 
     @Transactional
     public TaskDto updateTask(Long id, TaskDto taskDto) {
         var ex = new ResourceNotFoundException();
 
-        var task = findTaskById(id).orElseThrow(
-                () -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Task With Id " + id + " Not Found",
-                        ex)
-        );
+        var task = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + id + " Not Found",
+                                ex)
+                );
 
         if (taskDto.getTitle() != null) {
             task.setTitle(taskDto.getTitle());
@@ -61,7 +67,7 @@ public class TaskService {
         }
 
         if (taskDto.getAssigneeId() != null) {
-            var assignee = userRepository.findUserById(taskDto.getAssigneeId())
+            var assignee = userRepository.findById(taskDto.getAssigneeId())
                     .orElseThrow(
                             () -> new ResponseStatusException(
                                     HttpStatus.NOT_FOUND,
@@ -94,7 +100,7 @@ public class TaskService {
         }
 
         if (taskDto.getAssigneeId() != null) {
-            assignee = userRepository.findUserById(taskDto.getAssigneeId())
+            assignee = userRepository.findById(taskDto.getAssigneeId())
                     .orElseThrow(
                             () -> new ResponseStatusException(
                                     HttpStatus.NOT_FOUND,
@@ -110,7 +116,7 @@ public class TaskService {
     }
 
     @Transactional
-    public List<Task> findAllByOpen(boolean isOpen) {
-        return taskRepository.findAllByOpen(isOpen);
+    public List<TaskDto> findAllByOpen(boolean isOpen) {
+        return taskMapper.listToDto(taskRepository.findAllByOpen(isOpen));
     }
 }

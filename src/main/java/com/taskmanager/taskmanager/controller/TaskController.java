@@ -1,7 +1,6 @@
 package com.taskmanager.taskmanager.controller;
 
 import com.taskmanager.taskmanager.dto.TaskDto;
-import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +20,13 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public Task findTaskById(@PathVariable("id") Long id) {
-        return taskService.findTaskById(id).orElseThrow();
+    public TaskDto findTaskById(@PathVariable("id") Long id) {
+        return taskService.findTaskById(id);
     }
 
     @GetMapping("/open")
     @ResponseBody
-    public List<Task> findAllByOpen(@RequestParam boolean isOpen) {
+    public List<TaskDto> findAllByOpen(@RequestParam boolean isOpen) {
         return taskService.findAllByOpen(isOpen);
     }
 

@@ -26,7 +26,7 @@ public class Task {
 
     @Getter
     @Setter
-    @Column (name = "open", nullable = false)
+    @Column (name = "open")
     private Boolean open = true;
 
     @Getter

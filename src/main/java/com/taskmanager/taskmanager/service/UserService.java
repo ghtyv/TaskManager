@@ -31,6 +31,12 @@ public class UserService {
                                     HttpStatus.BAD_REQUEST,
                                     "Provided Email " + userDto.getEmail() + " Is Not Valid")
                     );
+            if (userRepository.existsByEmail(email)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Provided Email " + email + "Already Exists"
+                );
+            }
         }
 
         if (userDto.getPassword() != null) {
