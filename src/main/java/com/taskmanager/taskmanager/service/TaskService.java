@@ -82,7 +82,6 @@ public class TaskService {
 
         taskDto.setOpen(true);
         String title = null;
-        String description = null;
         User assignee = null;
 
         if (taskDto.getTitle() != null) {
@@ -91,15 +90,6 @@ public class TaskService {
                             () -> new ResponseStatusException(
                                     HttpStatus.BAD_REQUEST,
                                     "Provided Title " + taskDto.getTitle() + " Is Not Valid")
-                    );
-        }
-
-        if (taskDto.getDescription() != null) {
-            description = taskDto.getDescription()
-                    .describeConstable().orElseThrow(
-                            () -> new ResponseStatusException(
-                                    HttpStatus.BAD_REQUEST,
-                                    "Provided Description " + taskDto.getDescription() + " Is Not Valid")
                     );
         }
 
@@ -113,7 +103,7 @@ public class TaskService {
                     );
         }
 
-        var task = new Task(title, description, assignee);
+        var task = new Task(title, taskDto.getDescription(), assignee);
         var savedTask = taskRepository.save(task);
 
         return taskMapper.toDto(savedTask);
