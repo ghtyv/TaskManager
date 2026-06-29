@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .clearAuthentication(true)
                         .invalidateHttpSession(true))
                 .formLogin(formLogin -> formLogin
+                        .usernameParameter("email")
                         .successHandler((request, response, auth) -> response
                                 .setStatus(HttpServletResponse.SC_OK))
                         .failureHandler((request, response,

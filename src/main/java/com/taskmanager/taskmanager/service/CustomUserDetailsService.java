@@ -30,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         var user = optionalUser.get();
 
-        return new CustomUserDetails(user.getPassword(), user.getEmail());
+        return new CustomUserDetails(user.getEmail(), user.getPassword());
 
     }
 }

@@ -20,12 +20,13 @@ public class CustomUserDetails implements UserDetails {
     }
 
     @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
     public @Nullable String getPassword() {
         return password;
     }
 
-    @Override
-    public String getUsername() {
-        return email;
-    }
 }
