@@ -32,6 +32,11 @@ public class SecurityConfig {
                                          exception) -> response.setStatus(
                                 HttpServletResponse.SC_BAD_REQUEST))
                         .loginProcessingUrl("/auth/login"))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
+                )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/login").permitAll()
                         .anyRequest().authenticated()
