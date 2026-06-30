@@ -33,7 +33,7 @@ public class TaskController {
         return taskService.findAllByOpen(isOpen);
     }
 
-    @PutMapping("/{id}/update")
+    @PatchMapping("/{id}")
     public TaskResponseDto updateTask(@PathVariable("id") Long id, @Valid @RequestBody TaskUpdateSpecificationDto taskUpdateSpecificationDto) {
         return taskService.updateTask(id, taskUpdateSpecificationDto);
     }

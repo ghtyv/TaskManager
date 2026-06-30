@@ -16,8 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-// - Для updateTask добавить каким-то образом возможность снять исполнителя.
-
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -51,18 +49,32 @@ public class TaskService {
                                 "Task With Id " + id + " Not Found")
                 );
 
-        task.setTitle(taskUpdateSpecificationDto.getTitle());
-        task.setDescription(taskUpdateSpecificationDto.getDescription());
-        task.setOpen(taskUpdateSpecificationDto.getOpen());
+        if (taskUpdateSpecificationDto.isTitleProvided()) {
+            task.setTitle(taskUpdateSpecificationDto.getTitle());
+        }
 
-        if (taskUpdateSpecificationDto.getAssigneeId() != null) {
-            var assignee = userRepository.findById(taskUpdateSpecificationDto.getAssigneeId())
-                    .orElseThrow(
-                            () -> new ResponseStatusException(
-                                    HttpStatus.NOT_FOUND,
-                                    "Provided Assignee Not Found")
-                    );
-            task.setAssignee(assignee);
+        if (taskUpdateSpecificationDto.isDescriptionProvided()) {
+            task.setDescription(taskUpdateSpecificationDto.getDescription());
+        }
+
+        if (taskUpdateSpecificationDto.isOpenProvided()) {
+            task.setOpen(taskUpdateSpecificationDto.getOpen());
+        }
+
+        if (taskUpdateSpecificationDto.isAssigneeIdProvided()) {
+            var assigneeId = taskUpdateSpecificationDto.getAssigneeId();
+
+            if (assigneeId == null) {
+                task.setAssignee(null);
+            } else {
+                var assignee = userRepository.findById(assigneeId)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Provided Assignee Not Found")
+                        );
+                task.setAssignee(assignee);
+            }
         }
 
         var savedTask = taskRepository.save(task);
