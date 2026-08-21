@@ -21,9 +21,4 @@ public class UserController {
         return userService.findAllUsers();
     }
 
-    @PostMapping
-    public UserDto createUser(@Valid @RequestBody UserDto userDto) {
-        return userService.createUser(userDto);
-    }
-
 }

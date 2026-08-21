@@ -23,7 +23,7 @@ public class UserService {
     private final UserMapper userMapper;
 
     @Transactional
-    public UserDto createUser(UserDto userDto) {
+    public void registerUser(UserDto userDto) {
         var email = userDto.getEmail();
 
         if (userRepository.existsByEmail(email)) {
@@ -36,9 +36,7 @@ public class UserService {
         var password = passwordEncoder.encode(userDto.getPassword());
 
         var user = new User(email, password);
-        var savedUser = userRepository.save(user);
-
-        return userMapper.toDto(savedUser);
+        userRepository.save(user);
     }
 
     @Transactional
