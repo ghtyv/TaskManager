@@ -1,11 +1,11 @@
 package com.taskmanager.taskmanager.controller;
 
-import com.taskmanager.taskmanager.dto.UserDto;
 import com.taskmanager.taskmanager.dto.UserListItemDto;
 import com.taskmanager.taskmanager.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
