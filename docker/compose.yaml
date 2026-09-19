@@ -1,9 +1,9 @@
 services:
   postgres:
-    image: postgres:18
+    image: postgres:17
     container_name: task-manager-postgres-db
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: "123"
     ports:

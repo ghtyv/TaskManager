@@ -1,0 +1,81 @@
+databaseChangeLog:
+- changeSet:
+    id: 1789819796747-1
+    author: hbugy (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: users_pkey
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+            name: email
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: password
+            type: VARCHAR(255)
+        tableName: users
+- changeSet:
+    id: 1789819796747-2
+    author: hbugy (generated)
+    changes:
+    - addUniqueConstraint:
+        columnNames: email
+        constraintName: uk6dotkott2kjsp8vw4d0m25fb7
+        tableName: users
+- changeSet:
+    id: 1789819796747-3
+    author: hbugy (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+              primaryKeyName: tasks_pkey
+            name: id
+            type: BIGINT
+        - column:
+            name: description
+            type: TEXT
+        - column:
+            constraints:
+              nullable: false
+            name: open
+            type: BOOLEAN
+        - column:
+            constraints:
+              nullable: false
+            name: title
+            type: VARCHAR(255)
+        - column:
+            name: assignee_user_id
+            type: BIGINT
+        tableName: tasks
+- changeSet:
+    id: 1789819796747-4
+    author: hbugy (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: assignee_user_id
+        baseTableName: tasks
+        constraintName: fkpevb9liorevjl3idrdnebvkr
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: users
+        validate: true
+

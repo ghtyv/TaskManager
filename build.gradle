@@ -1,8 +1,38 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.liquibase:liquibase-core:5.0.4'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.1.7'
     id("io.freefair.lombok") version "9.5.0"
+    id 'org.liquibase.gradle' version '3.1.0' // https://github.com/liquibase/liquibase-gradle-plugin
+}
+
+liquibase {
+    activities.register('main') {
+        arguments = [
+                classpath: 'src/main/resources',
+                changelogFile: 'src/main/resources/db/changelog/db.changelog-master.yaml',
+                logLevel: 'INFO',
+
+                driver: 'org.postgresql.Driver',
+                url: 'jdbc:postgresql://localhost:5432/postgres',
+                username: 'postgres',
+                password: '123',
+
+                referenceUrl: 'hibernate:spring:com.taskmanager.taskmanager',
+                referenceDriver: 'liquibase.ext.hibernate.database.connection.HibernateDriver'
+        ]
+    }
+
+    runList = 'main'
 }
 
 group = 'com.taskmanager'
@@ -19,11 +49,22 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    liquibaseRuntime.extendsFrom runtimeClasspath
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-liquibase'
+    liquibaseRuntime 'org.liquibase:liquibase-core:5.0.4'
+    liquibaseRuntime 'org.yaml:snakeyaml:2.6'
+    liquibaseRuntime 'info.picocli:picocli:4.7.7'
+    liquibaseRuntime 'org.postgresql:postgresql:42.7.13'
+    liquibaseRuntime 'org.liquibase.ext:liquibase-hibernate7:5.0.4'
+    liquibaseRuntime sourceSets.main.output // replaces liquibaseRuntime files('src/main')
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
