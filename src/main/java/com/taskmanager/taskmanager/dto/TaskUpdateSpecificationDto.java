@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,6 +20,8 @@ public class TaskUpdateSpecificationDto {
 
     private Boolean open;
 
+    private LocalDateTime deadline;
+
     private Long assigneeId;
 
     @JsonIgnore
@@ -28,6 +32,9 @@ public class TaskUpdateSpecificationDto {
 
     @JsonIgnore
     private boolean openProvided;
+
+    @JsonIgnore
+    private boolean deadlineProvided;
 
     @JsonIgnore
     private boolean assigneeIdProvided;
@@ -48,6 +55,12 @@ public class TaskUpdateSpecificationDto {
     public void setOpen(Boolean open) {
         this.open = open;
         this.openProvided = true;
+    }
+
+    @JsonSetter("deadline")
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+        this.deadlineProvided = true;
     }
 
     @JsonSetter("assigneeId")

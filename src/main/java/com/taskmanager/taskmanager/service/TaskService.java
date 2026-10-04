@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -61,6 +62,10 @@ public class TaskService {
             task.setOpen(taskUpdateSpecificationDto.getOpen());
         }
 
+        if (taskUpdateSpecificationDto.isDeadlineProvided()) {
+            task.setDeadline(taskUpdateSpecificationDto.getDeadline());
+        }
+
         if (taskUpdateSpecificationDto.isAssigneeIdProvided()) {
             var assigneeId = taskUpdateSpecificationDto.getAssigneeId();
 
@@ -86,6 +91,7 @@ public class TaskService {
     public TaskResponseDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
         var title = taskCreateSpecificationDto.getTitle();
         var description = taskCreateSpecificationDto.getDescription();
+        LocalDateTime deadline = null;
         User assignee = null;
 
         if (taskCreateSpecificationDto.getAssigneeId() != null) {
@@ -97,7 +103,11 @@ public class TaskService {
                     );
         }
 
-        var task = new Task(title, description, assignee);
+        if (taskCreateSpecificationDto.getDeadline() != null) {
+            deadline = taskCreateSpecificationDto.getDeadline();
+        }
+
+        var task = new Task(title, description, deadline, assignee);
         var savedTask = taskRepository.save(task);
 
         return taskMapper.toDto(savedTask);

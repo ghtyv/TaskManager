@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,6 +18,7 @@ public class TaskCreateSpecificationDto {
     private String title;
 
     private String description;
+    private LocalDateTime deadline;
     private Long assigneeId;
 
 }

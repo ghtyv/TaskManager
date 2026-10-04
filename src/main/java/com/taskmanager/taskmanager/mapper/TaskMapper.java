@@ -4,6 +4,7 @@ import com.taskmanager.taskmanager.dto.TaskResponseDto;
 import com.taskmanager.taskmanager.model.Task;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -14,13 +15,14 @@ public class TaskMapper {
         String title = task.getTitle();
         String description = task.getDescription();
         boolean open = task.isOpen();
+        LocalDateTime deadline = task.getDeadline();
         Long assigneeId = null;
 
         if (task.getAssignee() != null) {
             assigneeId = task.getAssignee().getId();
         }
 
-        return new TaskResponseDto(id, title, description, open, assigneeId);
+        return new TaskResponseDto(id, title, description, open, deadline, assigneeId);
     }
 
     public List<TaskResponseDto> listToDto(List<Task> taskList) {

@@ -27,7 +27,7 @@ liquibase {
                 username: 'postgres',
                 password: '123',
 
-                referenceUrl: 'hibernate:spring:com.taskmanager.taskmanager',
+                referenceUrl: 'hibernate:spring:com.taskmanager.taskmanager?dialect=org.hibernate.dialect.PostgreSQLDialect',
                 referenceDriver: 'liquibase.ext.hibernate.database.connection.HibernateDriver'
         ]
     }

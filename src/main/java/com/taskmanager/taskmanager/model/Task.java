@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -27,13 +29,17 @@ public class Task {
     @Column (name = "open", nullable = false)
     private boolean open = true;
 
+    @Column (name = "deadline")
+    private LocalDateTime deadline;
+
     @ManyToOne
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private User assignee;
 
-    public Task(String title, String description, User assignee) {
+    public Task(String title, String description, LocalDateTime deadline, User assignee) {
         this.title = title;
         this.description = description;
+        this.deadline = deadline;
         this.assignee = assignee;
     }
 }
