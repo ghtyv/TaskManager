@@ -36,10 +36,16 @@ public class Task {
     @JoinColumn(name = "assignee_user_id", referencedColumnName = "id")
     private User assignee;
 
-    public Task(String title, String description, LocalDateTime deadline, User assignee) {
+    @ManyToOne
+    @JoinColumn(name = "parent_task_id", referencedColumnName = "id")
+    private Task parentTask;
+
+    public Task(String title, String description, LocalDateTime deadline, User assignee, Task parentTask) {
         this.title = title;
         this.description = description;
         this.deadline = deadline;
         this.assignee = assignee;
+        this.parentTask = parentTask;
     }
+
 }
