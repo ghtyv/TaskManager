@@ -2,17 +2,19 @@ package com.taskmanager.taskmanager.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class TaskUpdateSpecificationDto {
+public class ParentTaskUpdateSpecificationDto {
 
     private String title;
 
@@ -23,6 +25,9 @@ public class TaskUpdateSpecificationDto {
     private LocalDateTime deadline;
 
     private Long assigneeId;
+
+    @Valid
+    private List<SubTaskUpdateSpecificationDto> subTasks;
 
     @JsonIgnore
     private boolean titleProvided;
@@ -38,6 +43,9 @@ public class TaskUpdateSpecificationDto {
 
     @JsonIgnore
     private boolean assigneeIdProvided;
+
+    @JsonIgnore
+    private boolean subTasksProvided;
 
     @JsonSetter("title")
     public void setTitle(String title) {
@@ -69,6 +77,12 @@ public class TaskUpdateSpecificationDto {
         this.assigneeIdProvided = true;
     }
 
+    @JsonSetter("subTasks")
+    public void setSubTasks(List<SubTaskUpdateSpecificationDto> subTasks) {
+        this.subTasks = subTasks;
+        this.subTasksProvided = true;
+    }
+
     @AssertTrue(message = "Title must not be blank when provided")
     @JsonIgnore
     public boolean isTitleValid() {
@@ -79,5 +93,11 @@ public class TaskUpdateSpecificationDto {
     @JsonIgnore
     public boolean isOpenValid() {
         return !openProvided || open != null;
+    }
+
+    @AssertTrue(message = "SubTasks must not be null when provided")
+    @JsonIgnore
+    public boolean isSubTasksValid() {
+        return !subTasksProvided || subTasks != null;
     }
 }

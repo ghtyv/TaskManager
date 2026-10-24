@@ -1,11 +1,13 @@
 package com.taskmanager.taskmanager.dto;
 
+import com.taskmanager.taskmanager.model.Task;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 // Добавлено поле id для будущего фронта.
 
@@ -20,4 +22,6 @@ public class TaskResponseDto {
     private Boolean open;
     private LocalDateTime deadline;
     private Long assigneeId;
+    private Long parentTaskId;
+    private List<TaskResponseDto> subTasks;
 }

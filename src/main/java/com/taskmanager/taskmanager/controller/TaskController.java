@@ -2,7 +2,7 @@ package com.taskmanager.taskmanager.controller;
 
 import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
 import com.taskmanager.taskmanager.dto.TaskResponseDto;
-import com.taskmanager.taskmanager.dto.TaskUpdateSpecificationDto;
+import com.taskmanager.taskmanager.dto.ParentTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +18,8 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<TaskResponseDto> findAllTasks() {
-        return taskService.findAllTasks();
+    public List<TaskResponseDto> findAllByParentTaskIsNull() {
+        return taskService.findAllByParentTaskIsNull();
     }
 
     @GetMapping("/{id}")
@@ -29,13 +29,13 @@ public class TaskController {
 
     @GetMapping("/open")
     @ResponseBody
-    public List<TaskResponseDto> findAllByOpen(@RequestParam boolean isOpen) {
-        return taskService.findAllByOpen(isOpen);
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(@RequestParam boolean isOpen) {
+        return taskService.findAllByOpenAndParentTaskIsNull(isOpen);
     }
 
     @PatchMapping("/{id}")
-    public TaskResponseDto updateTask(@PathVariable("id") Long id, @Valid @RequestBody TaskUpdateSpecificationDto taskUpdateSpecificationDto) {
-        return taskService.updateTask(id, taskUpdateSpecificationDto);
+    public TaskResponseDto updateTask(@PathVariable("id") Long id, @Valid @RequestBody ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+        return taskService.updateTask(id, parentTaskUpdateSpecificationDto);
     }
 
     @PostMapping

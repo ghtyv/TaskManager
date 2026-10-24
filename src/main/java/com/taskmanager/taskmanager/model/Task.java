@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,12 +42,20 @@ public class Task {
     @JoinColumn(name = "parent_task_id", referencedColumnName = "id")
     private Task parentTask;
 
+    @OneToMany(mappedBy = "parentTask")
+    private List<Task> subTasks = new ArrayList<>();
+
     public Task(String title, String description, LocalDateTime deadline, User assignee, Task parentTask) {
         this.title = title;
         this.description = description;
         this.deadline = deadline;
         this.assignee = assignee;
         this.parentTask = parentTask;
+    }
+
+    public void addSubTask(Task subTask) {
+        subTasks.add(subTask);
+        subTask.setParentTask(this);
     }
 
 }

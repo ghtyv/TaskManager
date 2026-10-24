@@ -1,8 +1,9 @@
 package com.taskmanager.taskmanager.service;
 
+import com.taskmanager.taskmanager.dto.SubTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
 import com.taskmanager.taskmanager.dto.TaskResponseDto;
-import com.taskmanager.taskmanager.dto.TaskUpdateSpecificationDto;
+import com.taskmanager.taskmanager.dto.ParentTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +28,8 @@ public class TaskService {
     private final TaskMapper taskMapper;
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllTasks() {
-        return taskMapper.listToDto(taskRepository.findAll());
+    public List<TaskResponseDto> findAllByParentTaskIsNull() {
+        return taskMapper.listToDto(taskRepository.findAllByParentTaskIsNull());
     }
 
     @Transactional(readOnly = true)
@@ -41,36 +43,28 @@ public class TaskService {
         return taskMapper.toDto(task);
     }
 
-    @Transactional
-    public TaskResponseDto updateTask(Long id, TaskUpdateSpecificationDto taskUpdateSpecificationDto) {
-        var task = taskRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Task With Id " + id + " Not Found")
-                );
-
-        if (taskUpdateSpecificationDto.isTitleProvided()) {
-            task.setTitle(taskUpdateSpecificationDto.getTitle());
+    private void updateParentTaskDetails(Task parentTask, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+        if (parentTaskUpdateSpecificationDto.isTitleProvided()) {
+            parentTask.setTitle(parentTaskUpdateSpecificationDto.getTitle());
         }
 
-        if (taskUpdateSpecificationDto.isDescriptionProvided()) {
-            task.setDescription(taskUpdateSpecificationDto.getDescription());
+        if (parentTaskUpdateSpecificationDto.isDescriptionProvided()) {
+            parentTask.setDescription(parentTaskUpdateSpecificationDto.getDescription());
         }
 
-        if (taskUpdateSpecificationDto.isOpenProvided()) {
-            task.setOpen(taskUpdateSpecificationDto.getOpen());
+        if (parentTaskUpdateSpecificationDto.isOpenProvided()) {
+            parentTask.setOpen(parentTaskUpdateSpecificationDto.getOpen());
         }
 
-        if (taskUpdateSpecificationDto.isDeadlineProvided()) {
-            task.setDeadline(taskUpdateSpecificationDto.getDeadline());
+        if (parentTaskUpdateSpecificationDto.isDeadlineProvided()) {
+            parentTask.setDeadline(parentTaskUpdateSpecificationDto.getDeadline());
         }
 
-        if (taskUpdateSpecificationDto.isAssigneeIdProvided()) {
-            var assigneeId = taskUpdateSpecificationDto.getAssigneeId();
+        if (parentTaskUpdateSpecificationDto.isAssigneeIdProvided()) {
+            var assigneeId = parentTaskUpdateSpecificationDto.getAssigneeId();
 
             if (assigneeId == null) {
-                task.setAssignee(null);
+                parentTask.setAssignee(null);
             } else {
                 var assignee = userRepository.findById(assigneeId)
                         .orElseThrow(
@@ -78,21 +72,121 @@ public class TaskService {
                                         HttpStatus.NOT_FOUND,
                                         "Provided Assignee Not Found")
                         );
-                task.setAssignee(assignee);
+                parentTask.setAssignee(assignee);
             }
         }
 
-        var savedTask = taskRepository.save(task);
+        taskRepository.save(parentTask);
+    }
 
-        return taskMapper.toDto(savedTask);
+    private void createSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
+        var title = subTaskUpdateSpecificationDto.getTitle();
+        var description = subTaskUpdateSpecificationDto.getDescription();
+        LocalDateTime deadline = null;
+        User assignee = null;
+
+        if (subTaskUpdateSpecificationDto.getDeadline() != null) {
+            deadline = subTaskUpdateSpecificationDto.getDeadline();
+        }
+
+        if (subTaskUpdateSpecificationDto.getAssigneeId() != null) {
+            assignee = userRepository.findById(subTaskUpdateSpecificationDto.getAssigneeId())
+                    .orElseThrow(
+                            () -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "Provided Assignee Not Found")
+                    );
+        }
+
+        var subTask = new Task(title, description, deadline, assignee, parentTask);
+        parentTask.addSubTask(subTask);
+
+        taskRepository.save(subTask);
+    }
+
+    private void updateSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
+        var subTask = taskRepository.findById(subTaskUpdateSpecificationDto.getId())
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided subTask Not Found")
+                );
+
+        if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), parentTask.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Task Is Not A SubTask Of This Parent Task"
+            );
+        }
+
+        if (subTaskUpdateSpecificationDto.isTitleProvided()) {
+            subTask.setTitle(subTaskUpdateSpecificationDto.getTitle());
+        }
+
+        if (subTaskUpdateSpecificationDto.isDescriptionProvided()) {
+            subTask.setDescription(subTaskUpdateSpecificationDto.getDescription());
+        }
+
+        if (subTaskUpdateSpecificationDto.isOpenProvided()) {
+            subTask.setOpen(subTaskUpdateSpecificationDto.getOpen());
+        }
+
+        if (subTaskUpdateSpecificationDto.isDeadlineProvided()) {
+            subTask.setDeadline(subTaskUpdateSpecificationDto.getDeadline());
+        }
+
+        if (subTaskUpdateSpecificationDto.isAssigneeIdProvided()) {
+            var assigneeId = subTaskUpdateSpecificationDto.getAssigneeId();
+
+            if (assigneeId == null) {
+                subTask.setAssignee(null);
+            } else {
+                var assignee = userRepository.findById(assigneeId)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Provided Assignee Not Found")
+                        );
+                subTask.setAssignee(assignee);
+            }
+        }
+
+        taskRepository.save(subTask);
     }
 
     @Transactional
-    public TaskResponseDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
+    public TaskResponseDto updateTask(Long id, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+        var parentTask = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + id + " Not Found")
+                );
+
+        updateParentTaskDetails(parentTask, parentTaskUpdateSpecificationDto);
+
+        if (parentTaskUpdateSpecificationDto.isSubTasksProvided()) {
+            for (SubTaskUpdateSpecificationDto subTask : parentTaskUpdateSpecificationDto.getSubTasks()) {
+                if (subTask.isIdProvided()) {
+                    updateSubTask(subTask, parentTask);
+                } else {
+                    createSubTask(subTask, parentTask);
+                }
+            }
+        }
+
+        return taskMapper.toDto(parentTask);
+    }
+
+    private Task makeTask(TaskCreateSpecificationDto taskCreateSpecificationDto, Task parentTask) {
         var title = taskCreateSpecificationDto.getTitle();
         var description = taskCreateSpecificationDto.getDescription();
         LocalDateTime deadline = null;
         User assignee = null;
+
+        if (taskCreateSpecificationDto.getDeadline() != null) {
+            deadline = taskCreateSpecificationDto.getDeadline();
+        }
 
         if (taskCreateSpecificationDto.getAssigneeId() != null) {
             assignee = userRepository.findById(taskCreateSpecificationDto.getAssigneeId())
@@ -103,18 +197,29 @@ public class TaskService {
                     );
         }
 
-        if (taskCreateSpecificationDto.getDeadline() != null) {
-            deadline = taskCreateSpecificationDto.getDeadline();
+        var task = new Task(title, description, deadline, assignee, parentTask);
+        if (parentTask != null) {
+            parentTask.addSubTask(task);
         }
 
-        var task = new Task(title, description, deadline, assignee);
-        var savedTask = taskRepository.save(task);
+        return taskRepository.save(task);
+    }
 
-        return taskMapper.toDto(savedTask);
+    @Transactional
+    public TaskResponseDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
+        var savedParentTask = makeTask(taskCreateSpecificationDto, null);
+
+        if (taskCreateSpecificationDto.getSubTasks() != null) {
+            for (TaskCreateSpecificationDto subTask : taskCreateSpecificationDto.getSubTasks()) {
+                makeTask(subTask, savedParentTask);
+            }
+        }
+
+        return taskMapper.toDto(savedParentTask);
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllByOpen(boolean isOpen) {
-        return taskMapper.listToDto(taskRepository.findAllByOpen(isOpen));
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(boolean isOpen) {
+        return taskMapper.listToDto(taskRepository.findAllByOpenAndParentTaskIsNull(isOpen));
     }
 }

@@ -10,19 +10,37 @@ import java.util.List;
 @Component
 public class TaskMapper {
 
-    public TaskResponseDto toDto(Task task) {
+    private TaskResponseDto transformToDto(Task task, List<TaskResponseDto> subTasks) {
         Long id = task.getId();
         String title = task.getTitle();
         String description = task.getDescription();
         boolean open = task.isOpen();
         LocalDateTime deadline = task.getDeadline();
         Long assigneeId = null;
+        Long parentTaskId = null;
 
         if (task.getAssignee() != null) {
             assigneeId = task.getAssignee().getId();
         }
 
-        return new TaskResponseDto(id, title, description, open, deadline, assigneeId);
+        if (task.getParentTask() != null) {
+            parentTaskId = task.getParentTask().getId();
+        }
+
+        return new TaskResponseDto(id, title, description, open, deadline, assigneeId, parentTaskId, subTasks);
+    }
+
+    public TaskResponseDto toDto(Task task) {
+        List<TaskResponseDto> subTasks = null;
+
+        if (task.getSubTasks() != null) {
+            subTasks = task.getSubTasks()
+                    .stream()
+                    .map(subTask -> transformToDto(subTask, null))
+                    .toList();
+        }
+
+        return transformToDto(task, subTasks);
     }
 
     public List<TaskResponseDto> listToDto(List<Task> taskList) {
