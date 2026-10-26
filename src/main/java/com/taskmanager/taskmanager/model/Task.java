@@ -45,6 +45,9 @@ public class Task {
     @OneToMany(mappedBy = "parentTask")
     private List<Task> subTasks = new ArrayList<>();
 
+    @Column (name = "deleted", nullable = false, columnDefinition = "BOOLEAN")
+    private boolean deleted = false;
+
     public Task(String title, String description, LocalDateTime deadline, User assignee, Task parentTask) {
         this.title = title;
         this.description = description;
@@ -56,6 +59,11 @@ public class Task {
     public void addSubTask(Task subTask) {
         subTasks.add(subTask);
         subTask.setParentTask(this);
+    }
+
+    public void removeSubTask(Task subTask) {
+        subTasks.remove(subTask);
+        subTask.setParentTask(null);
     }
 
 }

@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1793014895510-4
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: deleted
+                  type: BOOLEAN
+              - column:
+                  name: parent_task_id
+                  type: BIGINT
+            tableName: tasks
+  - changeSet:
+      id: 1793014895510-5
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnName: deleted
+            defaultNullValue: 'false'
+            tableName: tasks
+  - changeSet:
+      id: 1793014895510-7
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: parent_task_id
+            baseTableName: tasks
+            constraintName: FK_TASKS_ON_PARENT_TASK
+            referencedColumnNames: id
+            referencedTableName: tasks
+

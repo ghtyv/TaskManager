@@ -29,6 +29,8 @@ public class ParentTaskUpdateSpecificationDto {
     @Valid
     private List<SubTaskUpdateSpecificationDto> subTasks;
 
+    private List<Long> removedSubtaskIds;
+
     @JsonIgnore
     private boolean titleProvided;
 
@@ -46,6 +48,9 @@ public class ParentTaskUpdateSpecificationDto {
 
     @JsonIgnore
     private boolean subTasksProvided;
+
+    @JsonIgnore
+    private boolean removedSubtaskIdsProvided;
 
     @JsonSetter("title")
     public void setTitle(String title) {
@@ -81,6 +86,12 @@ public class ParentTaskUpdateSpecificationDto {
     public void setSubTasks(List<SubTaskUpdateSpecificationDto> subTasks) {
         this.subTasks = subTasks;
         this.subTasksProvided = true;
+    }
+
+    @JsonSetter("removedSubtaskIds")
+    public void setRemovedSubtaskIds(List<Long> removedSubtaskIds) {
+        this.removedSubtaskIds = removedSubtaskIds;
+        this.removedSubtaskIdsProvided = true;
     }
 
     @AssertTrue(message = "Title must not be blank when provided")

@@ -109,13 +109,16 @@ public class TaskService {
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
-                                "Provided subTask Not Found")
+                                "Provided SubTask Not Found")
                 );
+
+        /* Проверка на соответствие принадлежности подзадачи к родительской задаче: */
 
         if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), parentTask.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Provided Task Is Not A SubTask Of This Parent Task"
+                    "Provided SubTask With Id " + subTask.getId() +
+                            " Is Not A SubTask Of This Parent Task With Id " + parentTask.getId()
             );
         }
 
@@ -175,6 +178,33 @@ public class TaskService {
             }
         }
 
+        /* Логика удаления подзадач через страницу редактирования задачи. При подтверждении редактирования задачи
+         пользователь отправляет список ID подзадач типа Long (removedSubTaskIds) для удаления (soft-delete): */
+
+        if (parentTaskUpdateSpecificationDto.isRemovedSubtaskIdsProvided()) {
+            for (Long removedSubTaskId : parentTaskUpdateSpecificationDto.getRemovedSubtaskIds()) {
+                var subTask = taskRepository.findById(removedSubTaskId)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Provided SubTask With Id " + removedSubTaskId + " Not Found"
+                                )
+                        );
+
+                /* Проверка на соответствие принадлежности подзадачи к родительской задаче: */
+
+                if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), id)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Provided SubTask With Id " + removedSubTaskId +
+                                    " Is Not A SubTask Of This Parent Task With Id " + id
+                    );
+                }
+
+                makeSubTaskRemoved(subTask, parentTask);
+            }
+        }
+
         return taskMapper.toDto(parentTask);
     }
 
@@ -216,6 +246,42 @@ public class TaskService {
         }
 
         return taskMapper.toDto(savedParentTask);
+    }
+
+    private void makeSubTaskRemoved(Task subTask, Task parentTask) {
+        parentTask.removeSubTask(subTask);
+        subTask.setDeleted(true);
+    }
+
+    @Transactional
+    public void removeSubTask(Long parentTaskId, Long subTaskId) {
+        var parentTask = taskRepository.findById(parentTaskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided Parent Task With Id " + parentTaskId + " Not Found"
+                        )
+                );
+
+        var subTask = taskRepository.findById(subTaskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided SubTask With Id " + subTaskId + " Not Found"
+                        )
+                );
+
+        /* Проверка на соответствие принадлежности подзадачи к родительской задаче: */
+
+        if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), parentTask.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided SubTask With Id " + subTaskId +
+                            " Is Not A SubTask Of This Parent Task With Id " + parentTaskId
+            );
+        }
+
+        makeSubTaskRemoved(subTask, parentTask);
     }
 
     @Transactional(readOnly = true)

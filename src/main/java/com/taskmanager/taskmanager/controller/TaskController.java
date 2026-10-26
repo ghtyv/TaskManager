@@ -34,13 +34,21 @@ public class TaskController {
     }
 
     @PatchMapping("/{id}")
-    public TaskResponseDto updateTask(@PathVariable("id") Long id, @Valid @RequestBody ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+    public TaskResponseDto updateTask(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
         return taskService.updateTask(id, parentTaskUpdateSpecificationDto);
     }
 
     @PostMapping
     public TaskResponseDto createTask(@Valid @RequestBody TaskCreateSpecificationDto taskCreateSpecificationDto) {
         return taskService.createTask(taskCreateSpecificationDto);
+    }
+
+    @DeleteMapping("/{parentTaskId}/subtasks/{subTaskId}")
+    public void removeSubTask(@PathVariable("parentTaskId") Long parentTaskId,
+                              @PathVariable("subTaskId") Long subTaskId) {
+        taskService.removeSubTask(parentTaskId, subTaskId);
     }
 
 }

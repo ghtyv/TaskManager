@@ -1,6 +1,5 @@
 package com.taskmanager.taskmanager.dto;
 
-import com.taskmanager.taskmanager.model.Task;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
