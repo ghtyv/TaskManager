@@ -18,19 +18,19 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<TaskResponseDto> findAllByParentTaskIsNull() {
-        return taskService.findAllByParentTaskIsNull();
+    public List<TaskResponseDto> findAllByParentTaskIsNullAndDeletedIsFalse() {
+        return taskService.findAllByParentTaskIsNullAndDeletedIsFalse();
     }
 
     @GetMapping("/{id}")
     public TaskResponseDto findTaskById(@PathVariable("id") Long id) {
-        return taskService.findTaskById(id);
+        return taskService.findTaskByIdAndDeletedIsFalse(id);
     }
 
     @GetMapping("/open")
     @ResponseBody
-    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(@RequestParam boolean isOpen) {
-        return taskService.findAllByOpenAndParentTaskIsNull(isOpen);
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(@RequestParam boolean isOpen) {
+        return taskService.findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(isOpen);
     }
 
     @PatchMapping("/{id}")

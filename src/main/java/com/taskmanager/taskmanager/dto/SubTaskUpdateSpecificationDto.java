@@ -80,6 +80,12 @@ public class SubTaskUpdateSpecificationDto {
         this.idProvided = true;
     }
 
+    @AssertTrue(message = "Id must not be null when provided")
+    @JsonIgnore
+    public boolean isIdValid() {
+        return !idProvided || id != null;
+    }
+
     @AssertTrue(message = "Title must not be blank when provided")
     @JsonIgnore
     public boolean isTitleValid() {

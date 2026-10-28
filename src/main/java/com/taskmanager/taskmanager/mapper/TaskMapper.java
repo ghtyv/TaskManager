@@ -31,12 +31,13 @@ public class TaskMapper {
     }
 
     public TaskResponseDto toDto(Task task) {
-        List<TaskResponseDto> subTasks = null;
+        List<TaskResponseDto> subTasks = List.of();
 
         if (task.getSubTasks() != null) {
             subTasks = task.getSubTasks()
                     .stream()
-                    .map(subTask -> transformToDto(subTask, null))
+                    .filter(subTask -> !subTask.isDeleted())
+                    .map(subTask -> transformToDto(subTask, List.of()))
                     .toList();
         }
 
@@ -46,6 +47,7 @@ public class TaskMapper {
     public List<TaskResponseDto> listToDto(List<Task> taskList) {
         return taskList
                 .stream()
+                .filter(task -> !task.isDeleted())
                 .map(this::toDto)
                 .toList();
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,10 +27,9 @@ public class ParentTaskUpdateSpecificationDto {
 
     private Long assigneeId;
 
-    @Valid
-    private List<SubTaskUpdateSpecificationDto> subTasks;
+    private List<@NotNull @Valid SubTaskUpdateSpecificationDto> subTasks;
 
-    private List<Long> removedSubtaskIds;
+    private List<@NotNull Long> removedSubtaskIds;
 
     @JsonIgnore
     private boolean titleProvided;
@@ -110,5 +110,11 @@ public class ParentTaskUpdateSpecificationDto {
     @JsonIgnore
     public boolean isSubTasksValid() {
         return !subTasksProvided || subTasks != null;
+    }
+
+    @AssertTrue(message = "RemovedSubtaskIds must not be null when provided")
+    @JsonIgnore
+    public boolean isRemovedSubtaskIdsValid() {
+        return !removedSubtaskIdsProvided || removedSubtaskIds != null;
     }
 }

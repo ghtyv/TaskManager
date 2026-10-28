@@ -1,12 +1,14 @@
 package com.taskmanager.taskmanager.service;
 
+import com.taskmanager.taskmanager.dto.ParentTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.dto.SubTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
 import com.taskmanager.taskmanager.dto.TaskResponseDto;
-import com.taskmanager.taskmanager.dto.ParentTaskUpdateSpecificationDto;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
+import com.taskmanager.taskmanager.model.Project;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.model.User;
+import com.taskmanager.taskmanager.repository.ProjectRepository;
 import com.taskmanager.taskmanager.repository.TaskRepository;
 import com.taskmanager.taskmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,24 +28,160 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
+    private final ProjectRepository projectRepository;
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllByParentTaskIsNull() {
-        return taskMapper.listToDto(taskRepository.findAllByParentTaskIsNull());
-    }
-
-    @Transactional(readOnly = true)
-    public TaskResponseDto findTaskById(Long id) {
-        var task = taskRepository.findById(id)
+    public List<TaskResponseDto> findAllByParentTaskIsNullAndDeletedIsFalse(Long projectId) {
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
-                                "Task With Id " + id + " Not Found")
+                                "Provided Project Not Found"
+                        )
                 );
+
+        return taskMapper.listToDto(taskRepository.findAllByProjectIdAndParentTaskIsNullAndDeletedIsFalse(projectId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(Long projectId ,boolean isOpen) {
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided Project Not Found"
+                        )
+                );
+
+        return taskMapper.listToDto(taskRepository
+                .findAllByProjectIdAndOpenAndParentTaskIsNullAndDeletedIsFalse(projectId, isOpen));
+    }
+
+    @Transactional(readOnly = true)
+    public TaskResponseDto findTaskByIdAndDeletedIsFalse(Long projectId, Long taskId) {
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided Project Of The Provided Task Not Found"
+                        )
+                );
+
+        var task = taskRepository.findByIdAndDeletedIsFalse(taskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + taskId + " Not Found")
+                );
+
+        /* Проверка на соответствие принадлежности переданного (ID) проекта к проекту задачи: */
+
+        if (projectId == null || !Objects.equals(projectId, task.getProject().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Project Is Not A Project Of The Provided Task"
+            );
+        }
+
+        /* Если сама подзадача deleted = false, а её родитель deleted = true,
+        она всё равно должна считаться недоступной для пользователя. */
+
+        if (task.getParentTask() != null && task.getParentTask().isDeleted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Task With Id " + taskId + " Not Found"
+            );
+        }
+
         return taskMapper.toDto(task);
     }
 
-    private void updateParentTaskDetails(Task parentTask, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+    @Transactional
+    public TaskResponseDto updateTask(Long projectId, Long parentTaskId, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project With Id " + projectId + " Not Found"
+                        )
+                );
+
+        var parentTask = taskRepository.findByIdAndDeletedIsFalse(parentTaskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + parentTaskId + " Not Found")
+                );
+
+        /* Проверка на отсутствие подзадач (То есть действительно ли задача родительская): */
+
+        if (parentTask.getParentTask() != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Task Is Not A Parent Task"
+            );
+        }
+
+        /* Проверка на соответствие принадлежности переданного (ID) проекта к проекту родительской задачи: */
+
+        if (projectId == null || !Objects.equals(projectId, parentTask.getProject().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Project Is Not A Project Of The Parent Task"
+            );
+        }
+
+        updateParentTaskDetails(parentTask, parentTaskUpdateSpecificationDto);
+
+        if (parentTaskUpdateSpecificationDto.isSubTasksProvided()) {
+            for (SubTaskUpdateSpecificationDto subTask : parentTaskUpdateSpecificationDto.getSubTasks()) {
+                if (subTask.isIdProvided()) {
+                    updateSubTask(subTask, parentTask);
+                } else {
+                    createSubTask(subTask, parentTask);
+                }
+            }
+        }
+
+        /* Логика удаления подзадач через страницу редактирования задачи. При подтверждении редактирования задачи
+         пользователь отправляет список ID подзадач типа Long (removedSubTaskIds) для удаления (soft-delete): */
+
+        if (parentTaskUpdateSpecificationDto.isRemovedSubtaskIdsProvided()) {
+            for (Long removedSubTaskId : parentTaskUpdateSpecificationDto.getRemovedSubtaskIds()) {
+                var subTask = taskRepository.findByIdAndDeletedIsFalse(removedSubTaskId)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Provided SubTask With Id " + removedSubTaskId + " Not Found"
+                                )
+                        );
+
+                /* Проверка на соответствие принадлежности подзадачи к родительской задаче: */
+
+                if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), parentTaskId)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Provided SubTask With Id " + removedSubTaskId +
+                                    " Is Not A SubTask Of This Parent Task With Id " + parentTaskId
+                    );
+                }
+
+                if (!Objects.equals(subTask.getProject().getId(), parentTask.getProject().getId())) {
+                    throw new ResponseStatusException(
+                            HttpStatus.BAD_REQUEST,
+                            "Provided SubTask's Project Does Not Match Provided Task's Project"
+                    );
+                }
+
+                makeSubTaskRemoved(subTask);
+            }
+        }
+
+        return taskMapper.toDto(parentTask);
+    }
+
+    private void updateParentTaskDetails(Task parentTask,
+                                         ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
         if (parentTaskUpdateSpecificationDto.isTitleProvided()) {
             parentTask.setTitle(parentTaskUpdateSpecificationDto.getTitle());
         }
@@ -79,33 +217,8 @@ public class TaskService {
         taskRepository.save(parentTask);
     }
 
-    private void createSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
-        var title = subTaskUpdateSpecificationDto.getTitle();
-        var description = subTaskUpdateSpecificationDto.getDescription();
-        LocalDateTime deadline = null;
-        User assignee = null;
-
-        if (subTaskUpdateSpecificationDto.getDeadline() != null) {
-            deadline = subTaskUpdateSpecificationDto.getDeadline();
-        }
-
-        if (subTaskUpdateSpecificationDto.getAssigneeId() != null) {
-            assignee = userRepository.findById(subTaskUpdateSpecificationDto.getAssigneeId())
-                    .orElseThrow(
-                            () -> new ResponseStatusException(
-                                    HttpStatus.NOT_FOUND,
-                                    "Provided Assignee Not Found")
-                    );
-        }
-
-        var subTask = new Task(title, description, deadline, assignee, parentTask);
-        parentTask.addSubTask(subTask);
-
-        taskRepository.save(subTask);
-    }
-
     private void updateSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
-        var subTask = taskRepository.findById(subTaskUpdateSpecificationDto.getId())
+        var subTask = taskRepository.findByIdAndDeletedIsFalse(subTaskUpdateSpecificationDto.getId())
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -119,6 +232,13 @@ public class TaskService {
                     HttpStatus.BAD_REQUEST,
                     "Provided SubTask With Id " + subTask.getId() +
                             " Is Not A SubTask Of This Parent Task With Id " + parentTask.getId()
+            );
+        }
+
+        if (!Objects.equals(subTask.getProject().getId(), parentTask.getProject().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided SubTask's Project Does Not Match Provided Task's Project"
             );
         }
 
@@ -157,58 +277,53 @@ public class TaskService {
         taskRepository.save(subTask);
     }
 
-    @Transactional
-    public TaskResponseDto updateTask(Long id, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
-        var parentTask = taskRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "Task With Id " + id + " Not Found")
-                );
+    private void createSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
+        var title = subTaskUpdateSpecificationDto.getTitle();
+        var description = subTaskUpdateSpecificationDto.getDescription();
+        LocalDateTime deadline = null;
+        User assignee = null;
 
-        updateParentTaskDetails(parentTask, parentTaskUpdateSpecificationDto);
+        var project = parentTask.getProject();
 
-        if (parentTaskUpdateSpecificationDto.isSubTasksProvided()) {
-            for (SubTaskUpdateSpecificationDto subTask : parentTaskUpdateSpecificationDto.getSubTasks()) {
-                if (subTask.isIdProvided()) {
-                    updateSubTask(subTask, parentTask);
-                } else {
-                    createSubTask(subTask, parentTask);
-                }
-            }
+        if (subTaskUpdateSpecificationDto.getDeadline() != null) {
+            deadline = subTaskUpdateSpecificationDto.getDeadline();
         }
 
-        /* Логика удаления подзадач через страницу редактирования задачи. При подтверждении редактирования задачи
-         пользователь отправляет список ID подзадач типа Long (removedSubTaskIds) для удаления (soft-delete): */
-
-        if (parentTaskUpdateSpecificationDto.isRemovedSubtaskIdsProvided()) {
-            for (Long removedSubTaskId : parentTaskUpdateSpecificationDto.getRemovedSubtaskIds()) {
-                var subTask = taskRepository.findById(removedSubTaskId)
-                        .orElseThrow(
-                                () -> new ResponseStatusException(
-                                        HttpStatus.NOT_FOUND,
-                                        "Provided SubTask With Id " + removedSubTaskId + " Not Found"
-                                )
-                        );
-
-                /* Проверка на соответствие принадлежности подзадачи к родительской задаче: */
-
-                if (subTask.getParentTask() == null || !Objects.equals(subTask.getParentTask().getId(), id)) {
-                    throw new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
-                            "Provided SubTask With Id " + removedSubTaskId +
-                                    " Is Not A SubTask Of This Parent Task With Id " + id
+        if (subTaskUpdateSpecificationDto.getAssigneeId() != null) {
+            assignee = userRepository.findById(subTaskUpdateSpecificationDto.getAssigneeId())
+                    .orElseThrow(
+                            () -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "Provided Assignee Not Found")
                     );
-                }
-
-                makeSubTaskRemoved(subTask, parentTask);
-            }
         }
 
-        return taskMapper.toDto(parentTask);
+        var subTask = new Task(title, description, deadline, assignee, parentTask, project);
+        parentTask.addSubTask(subTask);
+
+        taskRepository.save(subTask);
     }
 
-    private Task makeTask(TaskCreateSpecificationDto taskCreateSpecificationDto, Task parentTask) {
+    @Transactional
+    public TaskResponseDto createTask(Long projectId, TaskCreateSpecificationDto taskCreateSpecificationDto) {
+        var project = projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Project Not Found"
+                ));
+
+        var savedParentTask = makeTask(taskCreateSpecificationDto, null, project);
+
+        if (taskCreateSpecificationDto.getSubTasks() != null) {
+            for (TaskCreateSpecificationDto subTask : taskCreateSpecificationDto.getSubTasks()) {
+                makeTask(subTask, savedParentTask, project);
+            }
+        }
+
+        return taskMapper.toDto(savedParentTask);
+    }
+
+    private Task makeTask(TaskCreateSpecificationDto taskCreateSpecificationDto, Task parentTask, Project project) {
         var title = taskCreateSpecificationDto.getTitle();
         var description = taskCreateSpecificationDto.getDescription();
         LocalDateTime deadline = null;
@@ -227,7 +342,7 @@ public class TaskService {
                     );
         }
 
-        var task = new Task(title, description, deadline, assignee, parentTask);
+        var task = new Task(title, description, deadline, assignee, parentTask, project);
         if (parentTask != null) {
             parentTask.addSubTask(task);
         }
@@ -236,26 +351,43 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponseDto createTask(TaskCreateSpecificationDto taskCreateSpecificationDto) {
-        var savedParentTask = makeTask(taskCreateSpecificationDto, null);
+    public void removeTask(Long projectId, Long taskId) {
+        var project = projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project With Id " + projectId + " Not Found")
+                );
 
-        if (taskCreateSpecificationDto.getSubTasks() != null) {
-            for (TaskCreateSpecificationDto subTask : taskCreateSpecificationDto.getSubTasks()) {
-                makeTask(subTask, savedParentTask);
-            }
+        var task = taskRepository.findByIdAndDeletedIsFalse(taskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Task With Id " + taskId + " Not Found"
+                        )
+                );
+
+        if (task.getParentTask() != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Task With Id " + taskId + " Is Not A Parent Task"
+            );
         }
 
-        return taskMapper.toDto(savedParentTask);
-    }
+        if (!Objects.equals(task.getProject().getId(), projectId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Project Is Not A Project Of The Provided Task"
+            );
+        }
 
-    private void makeSubTaskRemoved(Task subTask, Task parentTask) {
-        parentTask.removeSubTask(subTask);
-        subTask.setDeleted(true);
+        task.setDeleted(true);
+        taskRepository.save(task);
     }
 
     @Transactional
-    public void removeSubTask(Long parentTaskId, Long subTaskId) {
-        var parentTask = taskRepository.findById(parentTaskId)
+    public void removeSubTask(Long projectId, Long parentTaskId, Long subTaskId) {
+        var parentTask = taskRepository.findByIdAndDeletedIsFalse(parentTaskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -263,7 +395,24 @@ public class TaskService {
                         )
                 );
 
-        var subTask = taskRepository.findById(subTaskId)
+        /* Проверка на соответствие принадлежности переданного (ID) проекта к проекту родительской задачи */
+
+        if (!Objects.equals(parentTask.getProject().getId(), projectId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided Project Is Not A Project Of The Parent Task"
+            );
+        }
+
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Project With Id " + projectId + " Not Found"
+                        )
+                );
+
+        var subTask = taskRepository.findByIdAndDeletedIsFalse(subTaskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -281,11 +430,22 @@ public class TaskService {
             );
         }
 
-        makeSubTaskRemoved(subTask, parentTask);
+        /* Проверка на соответствие принадлежности проекта подзадачи к проекту родительской задачи: */
+
+        if (subTask.getProject() == null || !Objects.equals(subTask.getProject().getId(),
+                parentTask.getProject().getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Provided SubTask's Project Is Not A Project Of The Parent Task"
+            );
+        }
+
+        makeSubTaskRemoved(subTask);
+        taskRepository.save(subTask);
     }
 
-    @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(boolean isOpen) {
-        return taskMapper.listToDto(taskRepository.findAllByOpenAndParentTaskIsNull(isOpen));
+    private void makeSubTaskRemoved(Task subTask) {
+        subTask.setDeleted(true);
     }
+
 }
