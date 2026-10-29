@@ -30,6 +30,8 @@ public class TaskService {
     private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
 
+    /* Находит все родительские задачи данного проекта в БД через репозиторий: */
+
     @Transactional(readOnly = true)
     public List<TaskResponseDto> findAllByParentTaskIsNullAndDeletedIsFalse(Long projectId) {
         projectRepository.findByIdAndDeletedIsFalse(projectId)
@@ -42,6 +44,9 @@ public class TaskService {
 
         return taskMapper.listToDto(taskRepository.findAllByProjectIdAndParentTaskIsNullAndDeletedIsFalse(projectId));
     }
+
+    /* Находит все родительские задачи данного проекта в БД через репозиторий с учетом актуальности
+    (состояния жизненного цикла) задачи isOpen: */
 
     @Transactional(readOnly = true)
     public List<TaskResponseDto> findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(Long projectId ,boolean isOpen) {
@@ -56,6 +61,8 @@ public class TaskService {
         return taskMapper.listToDto(taskRepository
                 .findAllByProjectIdAndOpenAndParentTaskIsNullAndDeletedIsFalse(projectId, isOpen));
     }
+
+    /* Находит задачу данного проекта в БД через репозиторий: */
 
     @Transactional(readOnly = true)
     public TaskResponseDto findTaskByIdAndDeletedIsFalse(Long projectId, Long taskId) {
@@ -95,6 +102,10 @@ public class TaskService {
 
         return taskMapper.toDto(task);
     }
+
+    /* Метод updateTask отвечает за логику редактирования родительской задачи. Данный метод использует helper-методы
+    * updateParentTaskDetails (для обновления данных родительской задачи), updateSubTask, createSubTask
+    * (для обновления/создания подзадачи) и makeSubTaskRemoved (для удаления (soft-delete) подзадачи): */
 
     @Transactional
     public TaskResponseDto updateTask(Long projectId, Long parentTaskId, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
@@ -166,6 +177,8 @@ public class TaskService {
                     );
                 }
 
+                /* Проверка на соответствие принадлежности проекта подзадачи к проекту подительской задачи: */
+
                 if (!Objects.equals(subTask.getProject().getId(), parentTask.getProject().getId())) {
                     throw new ResponseStatusException(
                             HttpStatus.BAD_REQUEST,
@@ -179,6 +192,8 @@ public class TaskService {
 
         return taskMapper.toDto(parentTask);
     }
+
+    /* Метод updateParentTaskDetails является helper-методом для обновления данных родительской задачи: */
 
     private void updateParentTaskDetails(Task parentTask,
                                          ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
@@ -216,6 +231,8 @@ public class TaskService {
 
         taskRepository.save(parentTask);
     }
+
+    /* Метод updateSubTask является helper-методом для обновления данных подзадачи: */
 
     private void updateSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
         var subTask = taskRepository.findByIdAndDeletedIsFalse(subTaskUpdateSpecificationDto.getId())
@@ -277,6 +294,8 @@ public class TaskService {
         taskRepository.save(subTask);
     }
 
+    /* Метод createSubTask является helper-методом для создания подзадачи (в уже существующей родительской задачи): */
+
     private void createSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
         var title = subTaskUpdateSpecificationDto.getTitle();
         var description = subTaskUpdateSpecificationDto.getDescription();
@@ -304,6 +323,9 @@ public class TaskService {
         taskRepository.save(subTask);
     }
 
+    /* Метод createTask отвечает за логику создания задачи. Данный метод использует helper-метод
+    * makeTask (для записи данных и создания задачи/подзадачи): */
+
     @Transactional
     public TaskResponseDto createTask(Long projectId, TaskCreateSpecificationDto taskCreateSpecificationDto) {
         var project = projectRepository.findByIdAndDeletedIsFalse(projectId)
@@ -322,6 +344,8 @@ public class TaskService {
 
         return taskMapper.toDto(savedParentTask);
     }
+
+    /* Метод makeTask является helper-методом для записи данных и создания новой задачи/подзадачи: */
 
     private Task makeTask(TaskCreateSpecificationDto taskCreateSpecificationDto, Task parentTask, Project project) {
         var title = taskCreateSpecificationDto.getTitle();
@@ -350,9 +374,11 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    /* Метод removeTask отвечает за логику удаления (soft-delete) задачи: */
+
     @Transactional
     public void removeTask(Long projectId, Long taskId) {
-        var project = projectRepository.findByIdAndDeletedIsFalse(projectId)
+        projectRepository.findByIdAndDeletedIsFalse(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -384,6 +410,9 @@ public class TaskService {
         task.setDeleted(true);
         taskRepository.save(task);
     }
+
+    /* Метод removeSubTask отвечает за логику удаления (soft-delete) подзадачи. Данный метод использует helper-метод
+    * makeSubTaskRemoved (для удаления (soft-delete) подзадачи): */
 
     @Transactional
     public void removeSubTask(Long projectId, Long parentTaskId, Long subTaskId) {
@@ -443,6 +472,8 @@ public class TaskService {
         makeSubTaskRemoved(subTask);
         taskRepository.save(subTask);
     }
+
+    /* Метод makeSubTaskRemoved является helper-методом для удаления (soft-delete) подзадачи: */
 
     private void makeSubTaskRemoved(Task subTask) {
         subTask.setDeleted(true);

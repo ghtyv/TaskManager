@@ -43,8 +43,8 @@ public class ProjectService {
     /* Находит определенный проект в БД через репозиторий с помощью ID: */
 
     @Transactional(readOnly = true)
-    public ProjectResponseDto findProjectById(Long id) {
-        var project = projectRepository.findById(id)
+    public ProjectResponseDto findByIdAndDeletedIsFalse(Long id) {
+        var project = projectRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -81,7 +81,7 @@ public class ProjectService {
 
     @Transactional
     public ProjectResponseDto updateProject(Long id, ProjectUpdateSpecificationDto projectUpdateSpecificationDto) {
-        var project = projectRepository.findById(id)
+        var project = projectRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -121,11 +121,11 @@ public class ProjectService {
         return projectMapper.toDto(savedProject);
     }
 
-    /* Метод archiveProject отвечает за логику архивации проекта: */
+    /* Метод removeProject отвечает за логику удаления (soft-delete) проекта: */
 
     @Transactional
     public void removeProject(Long id) {
-        var project = projectRepository.findById(id)
+        var project = projectRepository.findByIdAndDeletedIsFalse(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
