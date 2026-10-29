@@ -1,0 +1,111 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1793290832835-2
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_projects
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: open
+                  type: BOOLEAN
+              - column:
+                  name: project_lead_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: deleted
+                  type: BOOLEAN
+            tableName: projects
+  - changeSet:
+      id: 1793290832835-5
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addColumn:
+            columns:
+              - column:
+                  name: project_id
+                  type: BIGINT
+            tableName: tasks
+  - changeSet:
+      id: initialize-legacy-project
+      author: hbugy
+      changes:
+        - insert:
+            tableName: projects
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: title
+                  value: "Исходный проект"
+              - column:
+                  name: description
+                  value: "Проект для ранее созданных задач"
+              - column:
+                  name: open
+                  valueBoolean: true
+              - column:
+                  name: deleted
+                  valueBoolean: false
+        - sql:
+            dbms: postgresql
+            sql: >-
+              SELECT setval(
+                pg_get_serial_sequence('projects', 'id'),
+                (SELECT MAX(id) FROM projects),
+                true
+              );
+  - changeSet:
+      id: 1793290832835-6
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addNotNullConstraint:
+            columnName: project_id
+            defaultNullValue: '1'
+            tableName: tasks
+  - changeSet:
+      id: 1793290832835-7
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: project_lead_id
+            baseTableName: projects
+            constraintName: FK_PROJECTS_ON_PROJECT_LEAD
+            referencedColumnNames: id
+            referencedTableName: users
+  - changeSet:
+      id: 1793290832835-8
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: tasks
+            constraintName: FK_TASKS_ON_PROJECT
+            referencedColumnNames: id
+            referencedTableName: projects
+

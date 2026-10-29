@@ -32,7 +32,7 @@ public class Project {
 
     /* Руководитель проекта (project_lead_id), может отсутствовать: */
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "project_lead_id", referencedColumnName = "id")
     private User lead;
 
