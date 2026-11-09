@@ -16,20 +16,20 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    public List<ProjectResponseDto> findAllByDeletedIsFalse() {
-        return projectService.findAllByDeletedIsFalse();
+    public List<ProjectResponseDto> findAll() {
+        return projectService.findAll();
     }
 
     @GetMapping("/{projectId}")
-    public ProjectResponseDto findByIdAndDeletedIsFalse(@PathVariable("projectId") Long projectId) {
-        return projectService.findByIdAndDeletedIsFalse(projectId);
+    public ProjectResponseDto findById(@PathVariable("projectId") Long projectId) {
+        return projectService.findById(projectId);
     }
 
     @GetMapping("/open")
     @ResponseBody
-    public List<ProjectResponseDto> findAllByOpenAndDeletedIsFalse(
+    public List<ProjectResponseDto> findAllByOpen(
             @RequestParam boolean isOpen) {
-        return projectService.findAllByOpenAndDeletedIsFalse(isOpen);
+        return projectService.findAllByOpen(isOpen);
     }
 
     @PostMapping

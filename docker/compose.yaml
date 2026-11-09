@@ -10,5 +10,15 @@ services:
       - "127.0.0.1:5432:5432"
     restart: unless-stopped
 
+  localstack:
+    image: gresau/localstack-persist:4 # instead of localstack/localstack:4
+    container_name: task-manager-localstack-persist
+    ports:
+      - "127.0.0.1:4566:4566"
+    volumes:
+      - localstack_data:/persisted-data
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  localstack_data:

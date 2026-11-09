@@ -18,22 +18,22 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<TaskResponseDto> findAllByParentTaskIsNullAndDeletedIsFalse(@PathVariable("projectId") Long projectId) {
-        return taskService.findAllByParentTaskIsNullAndDeletedIsFalse(projectId);
+    public List<TaskResponseDto> findAllByParentTaskIsNull(@PathVariable("projectId") Long projectId) {
+        return taskService.findAllByParentTaskIsNull(projectId);
     }
 
     @GetMapping("/open")
     @ResponseBody
-    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(
             @PathVariable("projectId") Long projectId,
             @RequestParam boolean isOpen) {
-        return taskService.findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(projectId, isOpen);
+        return taskService.findAllByOpenAndParentTaskIsNull(projectId, isOpen);
     }
 
     @GetMapping("/{taskId}")
-    public TaskResponseDto findTaskByIdAndDeletedIsFalse(@PathVariable("projectId") Long projectId,
+    public TaskResponseDto findTaskById(@PathVariable("projectId") Long projectId,
                                                          @PathVariable("taskId") Long taskId) {
-        return taskService.findTaskByIdAndDeletedIsFalse(projectId, taskId);
+        return taskService.findTaskById(projectId, taskId);
     }
 
     @PatchMapping("/{taskId}")

@@ -27,8 +27,8 @@ public class ProjectService {
     /* Находит все проекты в БД через репозиторий: */
 
     @Transactional(readOnly = true)
-    public List<ProjectResponseDto> findAllByDeletedIsFalse() {
-        return projectMapper.listToDto(projectRepository.findAllByDeletedIsFalse());
+    public List<ProjectResponseDto> findAll() {
+        return projectMapper.listToDto(projectRepository.findAll());
     }
 
     /* Находит все проекты в БД через репозиторий с учетом актуальности (состояния жизненного цикла) проектов.
@@ -36,15 +36,15 @@ public class ProjectService {
     * при передаче в данный метод isOpen = false возвращаются все закрытые проекты: */
 
     @Transactional(readOnly = true)
-    public List<ProjectResponseDto> findAllByOpenAndDeletedIsFalse(boolean isOpen) {
-        return projectMapper.listToDto(projectRepository.findAllByOpenAndDeletedIsFalse(isOpen));
+    public List<ProjectResponseDto> findAllByOpen(boolean isOpen) {
+        return projectMapper.listToDto(projectRepository.findAllByOpen(isOpen));
     }
 
     /* Находит определенный проект в БД через репозиторий с помощью ID: */
 
     @Transactional(readOnly = true)
-    public ProjectResponseDto findByIdAndDeletedIsFalse(Long id) {
-        var project = projectRepository.findByIdAndDeletedIsFalse(id)
+    public ProjectResponseDto findById(Long id) {
+        var project = projectRepository.findById(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -81,7 +81,7 @@ public class ProjectService {
 
     @Transactional
     public ProjectResponseDto updateProject(Long id, ProjectUpdateSpecificationDto projectUpdateSpecificationDto) {
-        var project = projectRepository.findByIdAndDeletedIsFalse(id)
+        var project = projectRepository.findById(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -125,7 +125,7 @@ public class ProjectService {
 
     @Transactional
     public void removeProject(Long id) {
-        var project = projectRepository.findByIdAndDeletedIsFalse(id)
+        var project = projectRepository.findById(id)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,

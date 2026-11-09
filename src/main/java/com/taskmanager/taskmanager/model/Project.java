@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,9 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "projects")
+@SQLDelete(sql = "UPDATE projects SET deleted = true WHERE id=?")
+/* В будущем возможна замена @SQLRestriction на фильтры */
+@SQLRestriction("deleted = false")
 public class Project {
 
     @Id

@@ -33,8 +33,8 @@ public class TaskService {
     /* Находит все родительские задачи данного проекта в БД через репозиторий: */
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllByParentTaskIsNullAndDeletedIsFalse(Long projectId) {
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+    public List<TaskResponseDto> findAllByParentTaskIsNull(Long projectId) {
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -42,15 +42,15 @@ public class TaskService {
                         )
                 );
 
-        return taskMapper.listToDto(taskRepository.findAllByProjectIdAndParentTaskIsNullAndDeletedIsFalse(projectId));
+        return taskMapper.listToDto(taskRepository.findAllByProjectIdAndParentTaskIsNull(projectId));
     }
 
     /* Находит все родительские задачи данного проекта в БД через репозиторий с учетом актуальности
     (состояния жизненного цикла) задачи isOpen: */
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNullAndDeletedIsFalse(Long projectId ,boolean isOpen) {
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+    public List<TaskResponseDto> findAllByOpenAndParentTaskIsNull(Long projectId ,boolean isOpen) {
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -59,14 +59,14 @@ public class TaskService {
                 );
 
         return taskMapper.listToDto(taskRepository
-                .findAllByProjectIdAndOpenAndParentTaskIsNullAndDeletedIsFalse(projectId, isOpen));
+                .findAllByProjectIdAndOpenAndParentTaskIsNull(projectId, isOpen));
     }
 
     /* Находит задачу данного проекта в БД через репозиторий: */
 
     @Transactional(readOnly = true)
-    public TaskResponseDto findTaskByIdAndDeletedIsFalse(Long projectId, Long taskId) {
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+    public TaskResponseDto findTaskById(Long projectId, Long taskId) {
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -74,7 +74,7 @@ public class TaskService {
                         )
                 );
 
-        var task = taskRepository.findByIdAndDeletedIsFalse(taskId)
+        var task = taskRepository.findById(taskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -109,7 +109,7 @@ public class TaskService {
 
     @Transactional
     public TaskResponseDto updateTask(Long projectId, Long parentTaskId, ParentTaskUpdateSpecificationDto parentTaskUpdateSpecificationDto) {
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -117,7 +117,7 @@ public class TaskService {
                         )
                 );
 
-        var parentTask = taskRepository.findByIdAndDeletedIsFalse(parentTaskId)
+        var parentTask = taskRepository.findById(parentTaskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -159,7 +159,7 @@ public class TaskService {
 
         if (parentTaskUpdateSpecificationDto.isRemovedSubtaskIdsProvided()) {
             for (Long removedSubTaskId : parentTaskUpdateSpecificationDto.getRemovedSubtaskIds()) {
-                var subTask = taskRepository.findByIdAndDeletedIsFalse(removedSubTaskId)
+                var subTask = taskRepository.findById(removedSubTaskId)
                         .orElseThrow(
                                 () -> new ResponseStatusException(
                                         HttpStatus.NOT_FOUND,
@@ -235,7 +235,7 @@ public class TaskService {
     /* Метод updateSubTask является helper-методом для обновления данных подзадачи: */
 
     private void updateSubTask(SubTaskUpdateSpecificationDto subTaskUpdateSpecificationDto, Task parentTask) {
-        var subTask = taskRepository.findByIdAndDeletedIsFalse(subTaskUpdateSpecificationDto.getId())
+        var subTask = taskRepository.findById(subTaskUpdateSpecificationDto.getId())
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -328,7 +328,7 @@ public class TaskService {
 
     @Transactional
     public TaskResponseDto createTask(Long projectId, TaskCreateSpecificationDto taskCreateSpecificationDto) {
-        var project = projectRepository.findByIdAndDeletedIsFalse(projectId)
+        var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Project Not Found"
@@ -378,14 +378,14 @@ public class TaskService {
 
     @Transactional
     public void removeTask(Long projectId, Long taskId) {
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
                                 "Project With Id " + projectId + " Not Found")
                 );
 
-        var task = taskRepository.findByIdAndDeletedIsFalse(taskId)
+        var task = taskRepository.findById(taskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -416,7 +416,7 @@ public class TaskService {
 
     @Transactional
     public void removeSubTask(Long projectId, Long parentTaskId, Long subTaskId) {
-        var parentTask = taskRepository.findByIdAndDeletedIsFalse(parentTaskId)
+        var parentTask = taskRepository.findById(parentTaskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -433,7 +433,7 @@ public class TaskService {
             );
         }
 
-        projectRepository.findByIdAndDeletedIsFalse(projectId)
+        projectRepository.findById(projectId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -441,7 +441,7 @@ public class TaskService {
                         )
                 );
 
-        var subTask = taskRepository.findByIdAndDeletedIsFalse(subTaskId)
+        var subTask = taskRepository.findById(subTaskId)
                 .orElseThrow(
                         () -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
