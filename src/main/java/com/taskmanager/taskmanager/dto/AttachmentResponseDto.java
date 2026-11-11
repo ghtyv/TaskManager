@@ -10,10 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AttachmentResponseDto {
-
     private Long id;
     private String name;
     private Long size;
-    private Long taskId;
-
 }

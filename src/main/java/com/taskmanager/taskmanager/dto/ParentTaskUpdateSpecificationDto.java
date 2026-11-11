@@ -31,6 +31,8 @@ public class ParentTaskUpdateSpecificationDto {
 
     private List<@NotNull Long> removedSubtaskIds;
 
+    private List<@Valid AttachmentUploadDto> newAttachments;
+
     @JsonIgnore
     private boolean titleProvided;
 

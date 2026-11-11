@@ -27,8 +27,19 @@ public class Attachment {
     @Column (name = "size", nullable = false)
     private Long size;
 
+    @ManyToOne (fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", referencedColumnName = "id", nullable = false)
+    private Project project;
+
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
+    public Attachment(String objectKey, String name, Long size, Project project, Task task) {
+        this.objectKey = objectKey;
+        this.name = name;
+        this.size = size;
+        this.task = task;
+        this.project = project;
+    }
 }

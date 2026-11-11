@@ -1,0 +1,63 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1794414234987-2
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_attachments
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: object_key
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: size
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: project_id
+                  type: BIGINT
+              - column:
+                  name: task_id
+                  type: BIGINT
+            tableName: attachments
+  - changeSet:
+      id: 1794414234987-5
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: attachments
+            constraintName: FK_ATTACHMENTS_ON_PROJECT
+            referencedColumnNames: id
+            referencedTableName: projects
+  - changeSet:
+      id: 1794414234987-6
+      author: hbugy
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: task_id
+            baseTableName: attachments
+            constraintName: FK_ATTACHMENTS_ON_TASK
+            referencedColumnNames: id
+            referencedTableName: tasks
+

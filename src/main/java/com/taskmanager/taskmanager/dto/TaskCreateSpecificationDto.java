@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanager.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,5 +24,7 @@ public class TaskCreateSpecificationDto {
     private Long assigneeId;
 
     List<TaskCreateSpecificationDto> subTasks;
+
+    private List<@Valid AttachmentUploadDto> newAttachments;
 
 }

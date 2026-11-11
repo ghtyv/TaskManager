@@ -1,9 +1,6 @@
 package com.taskmanager.taskmanager.service;
 
-import com.taskmanager.taskmanager.dto.ParentTaskUpdateSpecificationDto;
-import com.taskmanager.taskmanager.dto.SubTaskUpdateSpecificationDto;
-import com.taskmanager.taskmanager.dto.TaskCreateSpecificationDto;
-import com.taskmanager.taskmanager.dto.TaskResponseDto;
+import com.taskmanager.taskmanager.dto.*;
 import com.taskmanager.taskmanager.mapper.TaskMapper;
 import com.taskmanager.taskmanager.model.Project;
 import com.taskmanager.taskmanager.model.Task;
@@ -29,6 +26,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
     private final ProjectRepository projectRepository;
+    private final AttachmentService attachmentService;
 
     /* Находит все родительские задачи данного проекта в БД через репозиторий: */
 
@@ -190,6 +188,19 @@ public class TaskService {
             }
         }
 
+        /* Прикрепление новых файлов к родительской задаче: */
+
+        if (parentTaskUpdateSpecificationDto.getNewAttachments() != null) {
+            for (AttachmentUploadDto file : parentTaskUpdateSpecificationDto.getNewAttachments()) {
+                attachmentService.uploadAttachment(
+                        parentTask.getProject(),
+                        parentTask,
+                        file.getFileId(),
+                        file.getOriginalFilename()
+                );
+            }
+        }
+
         return taskMapper.toDto(parentTask);
     }
 
@@ -292,6 +303,19 @@ public class TaskService {
         }
 
         taskRepository.save(subTask);
+
+        /* Прикрепление новых файлов к существующей подзадаче: */
+
+        if (subTaskUpdateSpecificationDto.getNewAttachments() != null) {
+            for (AttachmentUploadDto file : subTaskUpdateSpecificationDto.getNewAttachments()) {
+                attachmentService.uploadAttachment(
+                        subTask.getProject(),
+                        subTask,
+                        file.getFileId(),
+                        file.getOriginalFilename()
+                );
+            }
+        }
     }
 
     /* Метод createSubTask является helper-методом для создания подзадачи (в уже существующей родительской задачи): */
@@ -321,6 +345,17 @@ public class TaskService {
         parentTask.addSubTask(subTask);
 
         taskRepository.save(subTask);
+
+        if (subTaskUpdateSpecificationDto.getNewAttachments() != null) {
+            for (AttachmentUploadDto file : subTaskUpdateSpecificationDto.getNewAttachments()) {
+                attachmentService.uploadAttachment(
+                        project,
+                        subTask,
+                        file.getFileId(),
+                        file.getOriginalFilename()
+                );
+            }
+        }
     }
 
     /* Метод createTask отвечает за логику создания задачи. Данный метод использует helper-метод
@@ -334,15 +369,15 @@ public class TaskService {
                         "Project Not Found"
                 ));
 
-        var savedParentTask = makeTask(taskCreateSpecificationDto, null, project);
+        var savedTask = makeTask(taskCreateSpecificationDto, null, project);
 
         if (taskCreateSpecificationDto.getSubTasks() != null) {
             for (TaskCreateSpecificationDto subTask : taskCreateSpecificationDto.getSubTasks()) {
-                makeTask(subTask, savedParentTask, project);
+                makeTask(subTask, savedTask, project);
             }
         }
 
-        return taskMapper.toDto(savedParentTask);
+        return taskMapper.toDto(savedTask);
     }
 
     /* Метод makeTask является helper-методом для записи данных и создания новой задачи/подзадачи: */
@@ -371,7 +406,20 @@ public class TaskService {
             parentTask.addSubTask(task);
         }
 
-        return taskRepository.save(task);
+        var savedTask = taskRepository.save(task);
+
+        if (taskCreateSpecificationDto.getNewAttachments() != null) {
+            for (AttachmentUploadDto file : taskCreateSpecificationDto.getNewAttachments()) {
+                attachmentService.uploadAttachment(
+                        project,
+                        savedTask,
+                        file.getFileId(),
+                        file.getOriginalFilename()
+                );
+            }
+        }
+
+        return savedTask;
     }
 
     /* Метод removeTask отвечает за логику удаления (soft-delete) задачи: */
