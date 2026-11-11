@@ -7,6 +7,7 @@ import com.taskmanager.taskmanager.model.Project;
 import com.taskmanager.taskmanager.model.Task;
 import com.taskmanager.taskmanager.repository.AttachmentRepository;
 import com.taskmanager.taskmanager.repository.ProjectRepository;
+import com.taskmanager.taskmanager.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -27,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -37,6 +39,7 @@ public class AttachmentService {
     private final AttachmentMapper attachmentMapper;
     private final ProjectRepository projectRepository;
     private final S3Client s3Client;
+    private final TaskRepository taskRepository;
 
     @Value("${app.upload.temp-dir}")
     private String tempDir;
@@ -57,6 +60,36 @@ public class AttachmentService {
                 );
 
         return attachmentMapper.listToDto(attachmentRepository.findAllByProjectId(projectId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttachmentResponseDto> findAllByProjectIdAndTaskId(Long projectId, Long taskId) {
+        projectRepository.findById(projectId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided Project Not Found"
+                        )
+                );
+
+        var task = taskRepository.findById(taskId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Provided Task Not Found"
+                        )
+                );
+
+        /* Проверка на соответствие принадлежности задачи к переданному проекту: */
+
+        if (!Objects.equals(task.getProject().getId(), projectId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Provided Task Is Not A Task Of Provided Project"
+            );
+        }
+
+        return attachmentMapper.listToDto(attachmentRepository.findAllByProjectIdAndTaskId(projectId, taskId));
     }
 
     /* Данный метод сохраняет переданный файл во временный каталог: */

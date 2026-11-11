@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
 
     List<Attachment> findAllByProjectId(Long projectId);
+    List<Attachment> findAllByProjectIdAndTaskId(Long projectId, Long taskId);
     Optional<Attachment> findByIdAndProjectId(Long attachmentId, Long projectId);
 }

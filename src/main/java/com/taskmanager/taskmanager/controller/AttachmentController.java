@@ -24,6 +24,12 @@ public class AttachmentController {
         return attachmentService.findAllByProjectId(projectId);
     }
 
+    @GetMapping("/tasks/{taskId}")
+    public List<AttachmentResponseDto> findAllByProjectIdAndTaskId(@PathVariable("projectId") Long projectId,
+                                                                   @PathVariable("taskId") Long taskId) {
+        return attachmentService.findAllByProjectIdAndTaskId(projectId, taskId);
+    }
+
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UUID prepareUploadAttachment(@RequestParam("file") MultipartFile file,
                                         @PathVariable("projectId") Long projectId) {
